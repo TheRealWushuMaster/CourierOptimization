@@ -91,8 +91,6 @@ def package_cost_uruguay_cargo(total_weight, promo=False):
             variable_rate = rate if total_weight <= weight_threshold else total_weight * rate
             return fixed_rate, round(variable_rate, 2)
 
-print(package_cost_uruguay_cargo(2))
-print(package_cost_uruguay_cargo(1))
-print(package_cost_uruguay_cargo(0.8))
-print(package_cost_uruguay_cargo(0.4))
-print(package_cost_urubox(1))
+def package_cost_usx(total_weight, promo=False):
+    variable_rate = round(ceil(total_weight / 0.1) / 10 * 17.5, 2)
+    return 0, variable_rate
