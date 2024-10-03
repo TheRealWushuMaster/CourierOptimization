@@ -2,11 +2,9 @@ import courier_costs
 from numpy import linspace
 from matplotlib import pyplot as plt
 
-weights = linspace(100, 20000, 200)
 weights_list = []
-for value in weights:
-    weights_list.append((value-2)/1000)
-    weights_list.append((value+2)/1000)
+for weight in range(100, 20000, 1):
+    weights_list.append(weight/1000)
 
 def compute_total_cost(cost_func, weights):
     costs = []
@@ -24,6 +22,8 @@ costs_aerobox = compute_total_cost(courier_costs.package_cost_aerobox, weights_l
 costs_gripper = compute_total_cost(courier_costs.package_cost_gripper, weights_list)
 costs_uruguay_cargo = compute_total_cost(courier_costs.package_cost_uruguay_cargo, weights_list)
 costs_usx = compute_total_cost(courier_costs.package_cost_usx, weights_list)
+costs_exur = compute_total_cost(courier_costs.package_cost_exur, weights_list)
+costs_punto_mio = compute_total_cost(courier_costs.package_cost_punto_mio, weights_list)
 
 plt.figure(figsize=(10, 6))
 plt.plot(weights_list, costs_urubox, label='Urubox')
@@ -32,10 +32,12 @@ plt.plot(weights_list, costs_aerobox, label='Aerobox')
 plt.plot(weights_list, costs_gripper, label='Gripper')
 plt.plot(weights_list, costs_uruguay_cargo, label='Uruguay Cargo')
 plt.plot(weights_list, costs_usx, label='USX')
+plt.plot(weights_list, costs_exur, label='Exur')
+plt.plot(weights_list, costs_punto_mio, label='Punto Mío')
 
-plt.title('Precio de envío por peso')
-plt.xlabel('Peso total (kg)')
-plt.ylabel('Costo total (USD)')
+plt.title('Costo de envío por peso para compras gravadas')
+plt.xlabel('Peso (kg)')
+plt.ylabel('Costo (USD)')
 plt.xlim((0, 20))
 plt.ylim((0, None))
 plt.legend()
