@@ -1,7 +1,4 @@
 from math import ceil
-import pulp
-
-# Confirmar cómo aplicar el IVA en cada uno
 
 def package_cost_urubox(total_weight, promo=False):
     fixed_rate = 5
@@ -18,16 +15,10 @@ def package_cost_urubox(total_weight, promo=False):
         (10.0, 20, 16.5),
         (20.0, float('inf'), 15.9)
     ]
-    if isinstance(total_weight, pulp.LpVariable):
-        step_vars = pulp.LpVariable.dicts(f"step_select", range(len(weight_steps)), cat='Binary')
-        variable_rate = pulp.lpSum([step_vars[k] * cost_per_kg * total_weight 
-                                    for k, (_, _, cost_per_kg) in enumerate(weight_steps)])
-        return fixed_rate, variable_rate
-    else:
-        for min_weight, max_weight, rate in weight_steps:
-            if min_weight <= total_weight < max_weight:
-                variable_rate = rate if total_weight < weight_threshold else total_weight * rate
-                return fixed_rate, round(variable_rate, 2)
+    for min_weight, max_weight, rate in weight_steps:
+        if min_weight <= total_weight < max_weight:
+            variable_rate = rate if total_weight < weight_threshold else total_weight * rate
+            return fixed_rate, round(variable_rate, 2)
 
 def package_cost_miami_box(total_weight, promo=False):
     fixed_rate = 6
@@ -123,8 +114,4 @@ def package_cost_exur(total_weight, promo=False):
     else:
         variable_cost = round(ceil(weight_lbs - 1) * cost_rest_lbs, 2)
         return 0, cost_first_lb + variable_cost
-
-# weights = [0.4, 0.6, 0.8, 1, 1.3, 1.5, 2]
-# for weight in weights:
-#     cost = package_cost_punto_mio(weight)
-#     print(f"Weight = {weight}\tcost = {cost}")
+print(package_cost_urubox(1.8))
