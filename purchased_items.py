@@ -5,3 +5,9 @@ purchased_items = [("Philosopher's Stone", 67.5, 0.78),
                    ("Lasso of Truth", 120.1, 1.2),
                    ("Sword of Omens", 140.4, 0.95),
                    ("Gummiberry juice", 20.2, 0.3)]
+
+# Name of the courier used
+courier_service = "Urubox"
+
+# Maximum number of import fee exemptions to use
+fee_exemptions = 2
