@@ -28,7 +28,7 @@ def optimize_packaging(items: List[Item],
     n = len(items)
     best_solution = None
     best_cost = float('inf')
-    all_valid_solutions = []
+    valid_solutions = []
 
     def backtrack(index: int, current_partition: Solution):
         nonlocal best_solution, best_cost
@@ -63,7 +63,7 @@ def optimize_packaging(items: List[Item],
                                  "total_transport_cost": total_transport_cost,
                                  "total_import_fee": total_import_fee,
                                  "total_cost": total_cost}
-                all_valid_solutions.append(solution_info)
+                valid_solutions.append(solution_info)
                 if total_cost < best_cost:
                     best_cost = total_cost
                     best_solution = solution_info
@@ -77,10 +77,13 @@ def optimize_packaging(items: List[Item],
         backtrack(index + 1, current_partition)
         current_partition.pop()
     backtrack(0, [])
-    return best_solution, all_valid_solutions
+    return best_solution, valid_solutions
 
-def print_results(optimal_solution, all_solutions):
-    print("Optimal packaging solution:\n")
+def print_results(optimal_solution, all_solutions, courier_service):
+    print(f"Optimization using courier {courier_service}")
+    print()
+    print("Optimal packaging solution:")
+    print()
     for i, package in enumerate(optimal_solution["packages"]):
         print(f"* Package {i+1}:")
         print("  ==========\n")
@@ -106,5 +109,4 @@ def print_results(optimal_solution, all_solutions):
     print()
     print(f"Total cost:            USD {optimal_solution['total_cost']:.2f}")
     print()
-    print(f"Total number of valid solutions analyzed: {len(all_solutions)}")
-    return
+    print(f"Valid solutions analyzed: {len(all_solutions)}")
