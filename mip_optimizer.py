@@ -62,6 +62,9 @@ x = pulp.LpVariable.dicts("x", ((i, j) for i in range(num_items) for j in range(
 # Weight of each package
 w = pulp.LpVariable.dicts("w", range(num_packages), lowBound=0)
 
+# Price of each package
+package_price = pulp.LpVariable.dicts("package_price", range(num_packages), lowBound=0)
+
 # Binary variable for whether each package is exempt from import fee
 y = pulp.LpVariable.dicts("y", range(num_packages), cat='Binary')
 
@@ -71,12 +74,13 @@ M = 10000   # Big M constraint
 
 # Price and weight constraints
 for j in range(num_packages):
-    prob += pulp.lpSum([items[i][1] * x[i, j] for i in range(num_items)]) <= max_price_per_package  # Price constraint
+    prob += pulp.lpSum([items[i][1] * x[i, j] for i in range(num_items)]) == package_price[j]
+    prob += package_price[j] <= max_price_per_package  # Price constraint
     prob += pulp.lpSum([items[i][2] * x[i, j] for i in range(num_items)]) == w[j]  # Weight constraint
     prob += w[j] <= max_weight_per_package  # Max weight constraint
     prob += import_fee_cost[j] >= 0
-    prob += import_fee_cost[j] <= 0.6 * pulp.lpSum([items[i][1] * x[i, j] for i in range(num_items)])
-    prob += import_fee_cost[j] >= 0.6 * pulp.lpSum([items[i][1] * x[i, j] for i in range(num_items)]) - M * y[j]  # When not exempt y[j] == 0
+    prob += import_fee_cost[j] <= 0.6 * package_price[j]
+    prob += import_fee_cost[j] >= 0.6 * package_price[j] - M * y[j]  # When not exempt y[j] == 0
     prob += import_fee_cost[j] <= M * (1 - y[j])  # Should be zero if exempt y[j] == 1
 
 
