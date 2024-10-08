@@ -1,6 +1,8 @@
 from math import ceil
 
 def package_cost_urubox(total_weight, promo=False):
+    if total_weight == 0:
+        return 0, 0
     fixed_rate = 5
     if promo:
         return fixed_rate, round(max(total_weight, 1)*9.9, 2)

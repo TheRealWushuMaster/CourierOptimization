@@ -22,9 +22,9 @@ def package_valid(items: List[Tuple[float, float]]) -> bool:
     total_weight = sum(item[2] for item in items)
     return total_price <= MAX_PRICE_EXEMPTION and total_weight <= MAX_WEIGHT_EXEMPTION
 
-def optimize_packaging(items: List[Item], 
-                       transport_cost_func: Callable[[float], float], 
-                       max_exempt_packages: int = 3) -> Tuple[dict, List[dict]]:
+def brute_force_optimization(items: List[Item],
+                             transport_cost_func: Callable[[float], float],
+                             max_exempt_packages: int = 3) -> Tuple[dict, List[dict]]:
     n = len(items)
     best_solution = None
     best_cost = float('inf')
