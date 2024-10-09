@@ -1,10 +1,11 @@
 from typing import List, Tuple, Callable
 from itertools import combinations
 from settings import *
+from routines import *
 
 Item = Tuple[str, float, float]
-Package = List[Item]
-Solution = List[Package]
+Pack = List[Item]
+Solution = List[Pack]
 
 def calculate_package_cost(items: List[Tuple[float, float]], 
                            transport_cost_func: Callable[[float], float],
@@ -77,7 +78,26 @@ def brute_force_optimization(items: List[Item],
         backtrack(index + 1, current_partition)
         current_partition.pop()
     backtrack(0, [])
-    return best_solution, valid_solutions
+    
+    optimal_solution = PackageSolution(courier="TEST")
+    for package in best_solution["packages"]:
+        assigned_items = [(items["name"], items["price"], items["weight"]) for items in package["items"]]
+        total_price = package["total_price"]
+        total_weight = package["total_weight"]
+        transport_cost = package["transport_cost"]
+        import_fee = package["import_fee"]
+        import_fee_exemption = package["is_exempt"]
+        # Create a Package object
+        package = Package(items=assigned_items,
+                          total_price=total_price,
+                          total_weight=total_weight,
+                          transport_cost=transport_cost,
+                          import_fee=import_fee,
+                          import_fee_exemption=import_fee_exemption)
+        optimal_solution.add_package(package)
+    
+    return optimal_solution, valid_solutions
+    #return best_solution, valid_solutions
 
 def print_results(optimal_solution, all_solutions, courier_service):
     print(f"Optimization using courier {courier_service}")
