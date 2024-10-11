@@ -1,6 +1,7 @@
 import pulp
 from settings import *
 from routines import *
+from courier_services import *
 
 def minlp_optimization(courier, items, max_packages=None,
                        max_exemptions=MAX_EXEMPTIONS_PER_YEAR):
@@ -15,24 +16,24 @@ def minlp_optimization(courier, items, max_packages=None,
         max_exemptions = MAX_EXEMPTIONS_PER_YEAR
     elif max_exemptions < 0:
         max_exemptions = 0
-
+    courier_cost = couriers[courier]["cost_function"]
     # Couriers and costs (stepwise functions)
-    def courier_cost(weight, prob):
-        if isinstance(weight, float):
-            if weight==0:
-                return 0
-            if weight <= 1:
-                return 5
-            elif weight <= 2:
-                return 5 + (weight - 1) * 4
-            else:
-                return 5 + 4 + (weight - 2) * 3.5
-        elif isinstance(weight, pulp.LpVariable):
-            w1 = pulp.LpVariable(f'w1_{weight}', lowBound=0, upBound=1)
-            w2 = pulp.LpVariable(f'w2_{weight}', lowBound=0, upBound=1)
-            w3 = pulp.LpVariable(f'w3_{weight}', lowBound=0)
-            prob += weight == w1 + w2 + w3  # Ensure weight constraints
-            return 5 * w1 + 4 * w2 + 3.5 * w3
+    # def courier_cost(weight, prob):
+    #     if isinstance(weight, float):
+    #         if weight==0:
+    #             return 0
+    #         if weight <= 1:
+    #             return 5
+    #         elif weight <= 2:
+    #             return 5 + (weight - 1) * 4
+    #         else:
+    #             return 5 + 4 + (weight - 2) * 3.5
+    #     elif isinstance(weight, pulp.LpVariable):
+    #         w1 = pulp.LpVariable(f'w1_{weight}', lowBound=0, upBound=1)
+    #         w2 = pulp.LpVariable(f'w2_{weight}', lowBound=0, upBound=1)
+    #         w3 = pulp.LpVariable(f'w3_{weight}', lowBound=0)
+    #         prob += weight == w1 + w2 + w3  # Ensure weight constraints
+    #         return 5 * w1 + 4 * w2 + 3.5 * w3
 
     # Initialize PuLP problem
     prob = pulp.LpProblem("Minimize_Import_Costs", pulp.LpMinimize)
@@ -47,7 +48,8 @@ def minlp_optimization(courier, items, max_packages=None,
     # Import fee cost (will be zero if the package is exempted)
     import_fee_cost = pulp.LpVariable.dicts("import_fee_cost", range(num_packages), lowBound=0)
     nominal_import_fee = pulp.LpVariable.dicts("nominal_import_fee", range(num_packages), lowBound=0)
-    import_fee_above_min = pulp.LpVariable.dicts("import_fee_above_min", range(num_packages), lowBound=0, upBound=1, cat='Integer')
+    final_import_fee = pulp.LpVariable.dicts("final_import_fee", range(num_packages), lowBound=0)
+    y = pulp.LpVariable.dicts("y", range(num_packages), lowBound=0, upBound=1, cat='Integer')
     # Transport cost for each package
     transport_cost = pulp.LpVariable.dicts("transport_cost", range(num_packages), lowBound=0)
     # Total cost for each package
@@ -69,51 +71,36 @@ def minlp_optimization(courier, items, max_packages=None,
         prob += weight[j] <= MAX_WEIGHT_EXEMPTION  # Max weight constraint
         prob += transport_cost[j] == courier_cost(weight[j], prob)
         
+        # Import fees calculation
         prob += nominal_import_fee[j] == IMPORT_FEE_PERCENT * package_price[j]
-        
-                
+        # Import fee is lower-capped at MINIMUM_FEE_PAYMENT
         prob += import_fee_cost[j] >= nominal_import_fee[j]
-        
-        prob += import_fee_cost[j] <= IMPORT_FEE_PERCENT * package_price[j] #+ M * min_fee_active[j]
-        prob += import_fee_cost[j] >= IMPORT_FEE_PERCENT * package_price[j] - M * import_fee_exempted[j]    # When not exempt import_fee_exempted[j] == 0
-        prob += import_fee_cost[j] <= M * (1 - import_fee_exempted[j])  # Should be zero if exempt import_fee_exempted[j] == 1
-        
-        
-        # prob += import_fee_cost[j] >= MINIMUM_FEE_PAYMENT - M * import_fee_exempted[j]
-        # prob += import_fee_cost[j] <= nominal_import_fee[j] + M * (1 - import_fee_above_min[j])
-        # prob += import_fee_cost[j] <= MINIMUM_FEE_PAYMENT + M * (1 - import_fee_above_min[j])
-        # prob += import_fee_cost[j] >= MINIMUM_FEE_PAYMENT - M * (1 - import_fee_above_min[j])
-        # prob += nominal_import_fee[j] - MINIMUM_FEE_PAYMENT <= M * import_fee_above_min[j]
-        # prob += nominal_import_fee[j] - MINIMUM_FEE_PAYMENT >= -M * (1 - import_fee_above_min[j])
-        
-        # prob += import_fee_cost[j] <= nominal_import_fee[j] + M * import_fee_exempted[j]
-        # prob += import_fee_cost[j] >= nominal_import_fee[j] - M * import_fee_exempted[j]
-        # prob += import_fee_cost[j] <= M * (1 - import_fee_exempted[j])
-        # prob += import_fee_cost[j] >= MINIMUM_FEE_PAYMENT - M * import_fee_exempted[j]
-        # prob += import_fee_cost[j] <= MINIMUM_FEE_PAYMENT + M * (1 - import_fee_above_min[j])
-        # prob += nominal_import_fee[j] <= MINIMUM_FEE_PAYMENT + M * import_fee_above_min[j]
-        # prob += nominal_import_fee[j] >= MINIMUM_FEE_PAYMENT - M * (1 - import_fee_above_min[j])
-        # prob += import_fee_above_min[j] <= 1 - import_fee_exempted[j]
-        
-        
-        
-        prob += total_package_cost[j] == transport_cost[j] + import_fee_cost[j]
+        prob += import_fee_cost[j] >= MINIMUM_FEE_PAYMENT
+        prob += import_fee_cost[j] <= nominal_import_fee[j] + M * (1 - y[j])
+        prob += import_fee_cost[j] <= MINIMUM_FEE_PAYMENT + M * y[j]
+        # Restrict the final import fee to zero if package is exempted
+        prob += final_import_fee[j] >= import_fee_cost[j] - M * import_fee_exempted[j]
+        # Calculate total package cost
+        prob += total_package_cost[j] == transport_cost[j] + final_import_fee[j]
     # Limit the number of import fee exemptions
     prob += pulp.lpSum([import_fee_exempted[j] for j in range(num_packages)]) <= max_exemptions
     # Objective function: Minimize the total cost (courier fee + import fee)
-    prob += pulp.lpSum([transport_cost[j] + import_fee_cost[j]
-                        for j in range(num_packages)])
+    prob += pulp.lpSum([total_package_cost[j] for j in range(num_packages)])
     # Solve the problem
     prob.solve()
     # Create an object with the optimal solution
     optimal_solution = PackageSolution(courier=courier)
+    for i, pack in enumerate(optimal_solution.packages):
+        print(i+1)
+        print(pack)
+        print()
     for j in range(num_packages):
         assigned_items = [(items[i][0], items[i][1], items[i][2]) for i in range(num_items) if pulp.value(x[i, j]) == 1]
         if assigned_items:
             total_price = sum(item[1] for item in assigned_items)
             total_weight = sum(item[2] for item in assigned_items)
             transport_cost = pulp.value(courier_cost(total_weight, prob))
-            import_fee = pulp.value(import_fee_cost[j])
+            import_fee = pulp.value(final_import_fee[j])
             import_fee_exemption = bool(pulp.value(import_fee_exempted[j]))
             # Create a Package object
             package = Package(items=assigned_items,

@@ -1,26 +1,53 @@
 from math import ceil
+import pulp
 
-def package_cost_urubox(total_weight, promo=False):
-    if total_weight == 0:
-        return 0, 0
+def package_cost_urubox(total_weight, promo=False, sum=True):
     fixed_rate = 5
-    if promo:
-        return fixed_rate, round(max(total_weight, 1)*9.9, 2)
+    weight_steps = [(0.0, 0.2, 10.9),
+                    (0.2, 0.5, 15.9),
+                    (0.5, 0.7, 18.9),
+                    (0.7,   1, 20.9),
+                    (1.0,   5, 19.9),
+                    (5.0,  10, 17.9),
+                    (10.0, 20, 16.5),
+                    (20.0, float('inf'), 15.9)]
     weight_threshold = 1
-    weight_steps = [
-        (0.0, 0.2, 10.9),
-        (0.2, 0.5, 15.9),
-        (0.5, 0.7, 18.9),
-        (0.7,   1, 20.9),
-        (1.0,   5, 19.9),
-        (5.0,  10, 17.9),
-        (10.0, 20, 16.5),
-        (20.0, float('inf'), 15.9)
-    ]
-    for min_weight, max_weight, rate in weight_steps:
-        if min_weight <= total_weight < max_weight:
-            variable_rate = rate if total_weight < weight_threshold else total_weight * rate
-            return fixed_rate, round(variable_rate, 2)
+    if isinstance(total_weight, (int, float)):  # Float input (immediate calculation)
+        if total_weight == 0:
+            if sum:
+                return 0
+            else:
+                return 0, 0
+        if promo:
+            return fixed_rate, round(max(total_weight, 1)*9.9, 2)
+        for min_weight, max_weight, rate in weight_steps:
+            if min_weight <= total_weight < max_weight:
+                variable_rate = rate if total_weight < weight_threshold else total_weight * rate
+                if sum:
+                    return fixed_rate + round(variable_rate, 2)
+                else:
+                    return fixed_rate, round(variable_rate, 2)
+    elif isinstance(total_weight, pulp.LpVariable):  # LpVariable input (for optimization)
+        # Initialize the variable cost with a dummy large number
+        variable_rate = pulp.LpVariable("variable_rate", lowBound=0, cat='Continuous')
+        # Create a list of binary decision variables to select the correct weight range
+        weight_selectors = [pulp.LpVariable(f"weight_step_{i}", cat="Binary")
+                            for i in range(len(weight_steps))]
+        # Constraint to ensure only one weight step is active
+        prob += pulp.lpSum(weight_selectors) == 1
+        # Add constraints to enforce the correct weight step
+        for i, (min_weight, max_weight, rate) in enumerate(weight_steps):
+            # If in this range, then the rate applies
+            prob += weight_selectors[i] * min_weight <= total_weight
+            prob += total_weight <= weight_selectors[i] * max_weight
+            # Calculate variable cost based on this step
+            prob += variable_rate >= weight_selectors[i] * rate
+            if min_weight >= 1:
+                prob += variable_rate >= weight_selectors[i] * total_weight * rate
+        if sum:
+            return fixed_rate + variable_rate
+        else:
+            return fixed_rate, variable_rate
 
 def package_cost_miami_box(total_weight, promo=False):
     fixed_rate = 6

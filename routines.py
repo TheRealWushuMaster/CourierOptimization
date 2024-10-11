@@ -12,14 +12,15 @@ class Package:
         self.total_package_cost = transport_cost + import_fee
 
 class PackageSolution:
-    def __init__(self, courier):
-        self.packages = []  # List of Package objects
+    def __init__(self, courier, solutions=0):
+        self.packages = []              # List of Package objects
         self.total_weight = 0           # Total weight of all packages
         self.total_price = 0            # Total price of all packages
         self.total_transport_cost = 0   # Total transport cost of all packages
         self.total_import_fee = 0       # Total import fees of all packages
         self.total_cost = 0             # Total cost including transport and import fees
         self.courier = courier
+        self.solutions = solutions
     
     def add_package(self, package):
         self.packages.append(package)
@@ -61,3 +62,6 @@ def display_solution(solution):
     print(f"Total import fee:      USD {solution.total_import_fee:.2f}")
     print()
     print(f"Total cost:            USD {solution.total_cost:.2f}")
+    if solution.solutions > 0:
+        print()
+        print(f"Solutions analyzed:    {solution.solutions}")

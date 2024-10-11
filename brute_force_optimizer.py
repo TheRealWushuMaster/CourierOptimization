@@ -2,6 +2,7 @@ from typing import List, Tuple, Callable
 from itertools import combinations
 from settings import *
 from routines import *
+from courier_services import *
 
 Item = Tuple[str, float, float]
 Pack = List[Item]
@@ -23,19 +24,20 @@ def package_valid(items: List[Tuple[float, float]]) -> bool:
     total_weight = sum(item[2] for item in items)
     return total_price <= MAX_PRICE_EXEMPTION and total_weight <= MAX_WEIGHT_EXEMPTION
 
-def brute_force_optimization(items: List[Item],
-                             transport_cost_func: Callable[[float], float],
-                             max_exempt_packages: int = 3) -> Tuple[dict, List[dict]]:
+def brute_force_optimization(items,#: List[Item],
+                             courier,#: Callable[[float], float],
+                             max_exemptions=MAX_EXEMPTIONS_PER_YEAR):#: int = 3) -> Tuple[dict, List[dict]]:
     n = len(items)
     best_solution = None
     best_cost = float('inf')
+    transport_cost_func = couriers[courier]["cost_function"]
     valid_solutions = []
 
     def backtrack(index: int, current_partition: Solution):
         nonlocal best_solution, best_cost
 
         if index == n:
-            for exempt_combination in combinations(range(len(current_partition)), min(max_exempt_packages, len(current_partition))):
+            for exempt_combination in combinations(range(len(current_partition)), min(max_exemptions, len(current_partition))):
                 packages_info = []
                 total_transport_cost = 0
                 total_import_fee = 0
@@ -78,8 +80,7 @@ def brute_force_optimization(items: List[Item],
         backtrack(index + 1, current_partition)
         current_partition.pop()
     backtrack(0, [])
-    
-    optimal_solution = PackageSolution(courier="TEST")
+    optimal_solution = PackageSolution(courier="TEST", solutions=len(valid_solutions))
     for package in best_solution["packages"]:
         assigned_items = [(items["name"], items["price"], items["weight"]) for items in package["items"]]
         total_price = package["total_price"]
@@ -87,7 +88,6 @@ def brute_force_optimization(items: List[Item],
         transport_cost = package["transport_cost"]
         import_fee = package["import_fee"]
         import_fee_exemption = package["is_exempt"]
-        # Create a Package object
         package = Package(items=assigned_items,
                           total_price=total_price,
                           total_weight=total_weight,
@@ -97,7 +97,6 @@ def brute_force_optimization(items: List[Item],
         optimal_solution.add_package(package)
     
     return optimal_solution, valid_solutions
-    #return best_solution, valid_solutions
 
 def print_results(optimal_solution, all_solutions, courier_service):
     print(f"Optimization using courier {courier_service}")
