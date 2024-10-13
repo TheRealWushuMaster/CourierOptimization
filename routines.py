@@ -1,3 +1,5 @@
+from settings import M, MIN_TOLERANCE
+
 # CLASSES
 # =======
 class Package:
@@ -65,3 +67,54 @@ def display_solution(solution):
     if solution.solutions > 0:
         print()
         print(f"Solutions analyzed:    {solution.solutions}")
+
+# ADD RESTRAINTS FOR COMMON CONDITIONS
+# ====================================
+def add_linear_constraints_max(result, value1, value2, auxiliary_var, prob):
+    # result = max(value1, value2)
+    prob += result >= value1
+    prob += result >= value2
+    prob += result <= value1 + M * (1 - auxiliary_var)
+    prob += result <= value2 + M * auxiliary_var
+    return prob
+
+def add_linear_constraints_min(result, value1, value2, auxiliary_var, prob):
+    # result = min(value1, value2)
+    prob += result <= value1
+    prob += result <= value2
+    prob += result >= value1 - M * (1 - auxiliary_var)
+    prob += result >= value2 - M * auxiliary_var
+    return prob
+
+def add_linear_constraints_prod_bin_cont(result, bin_var, cont_var, prob):
+    # result = bin_var * cont_var
+    prob += result >= cont_var - M * (1 - bin_var)
+    return prob
+
+def add_linear_constraints_var_greater_than_value(result, var, value, prob):
+    prob += var - value <= M * result
+    return prob
+
+def add_linear_constraints_var_less_than_value(result, var, value, prob):
+    prob += value - var <= M * result
+    return prob
+
+def add_linear_constraints_var_greater_than_or_equal_value(result, var, value, prob):
+    prob += var - MIN_TOLERANCE - value <= M * result
+    return prob
+
+def add_linear_constraints_var_less_than_or_equal_value(result, var, value, prob):
+    prob += value - var + MIN_TOLERANCE <= M * result
+    return prob
+
+def add_linear_constraints_ceil(result, var, prob):
+    # result = ceil(var)
+    prob += result >= var
+    prob += result <= var + 0.999
+    return prob
+
+def add_linear_constraints_floor(result, var, prob):
+    # result = floor(var)
+    prob += result >= var - 0.999
+    prob += result <= var
+    return prob

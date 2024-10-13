@@ -13,7 +13,7 @@ def calculate_package_cost(items: List[Tuple[float, float]],
                            is_exempt: bool) -> float:
     total_price = sum(item[1] for item in items)
     total_weight = sum(item[2] for item in items)
-    transport_cost = transport_cost_func(total_weight)[0]+transport_cost_func(total_weight)[1]
+    transport_cost = transport_cost_func(total_weight)#[0]+transport_cost_func(total_weight)[1]
     import_fee = (max(IMPORT_FEE_PERCENT * total_price, MINIMUM_FEE_PAYMENT)) if not is_exempt else 0
     return {"transport_cost": transport_cost,
             "import_fee": import_fee,
@@ -80,7 +80,7 @@ def brute_force_optimization(items,#: List[Item],
         backtrack(index + 1, current_partition)
         current_partition.pop()
     backtrack(0, [])
-    optimal_solution = PackageSolution(courier="TEST", solutions=len(valid_solutions))
+    optimal_solution = PackageSolution(courier=courier, solutions=len(valid_solutions))
     for package in best_solution["packages"]:
         assigned_items = [(items["name"], items["price"], items["weight"]) for items in package["items"]]
         total_price = package["total_price"]
