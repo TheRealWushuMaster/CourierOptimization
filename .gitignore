@@ -2,3 +2,4 @@ __pycache__/
 *.pyc
 *.bsp
 purchased_items.py
+*.log

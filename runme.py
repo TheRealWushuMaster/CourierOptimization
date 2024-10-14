@@ -18,4 +18,4 @@ optimal_solution = minlp_optimization(courier=selected_courier,
 
 # DISPLAY THE RESULTS
 # ===================
-display_solution(optimal_solution)
+display_solution(optimal_solution, filename='solution_details.log')

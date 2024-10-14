@@ -59,14 +59,14 @@ def package_cost_test(total_weight, prob=None, promo=False, sum=True):
 
 def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
     fixed_rate = 5
-    weight_steps = [(0.0, 0.2, 10.9),
-                    (0.2, 0.5, 15.9),
-                    (0.5, 0.7, 18.9),
-                    (0.7,   1, 20.9),   # Up to this step, the rate is fixed by step
-                    (1.0,   5, 19.9),   # From this step onwards, the rate
-                    (5.0,  10, 17.9),   #   is linear with weight
-                    (10.0, 20, 16.5),
-                    (20.0, float('inf'), 15.9)]
+    weight_steps = [( 0.0,  0.2, 10.9),
+                    ( 0.2,  0.5, 15.9),
+                    ( 0.5,  0.7, 18.9),
+                    ( 0.7,    1, 20.9),   # Up to this step, the rate is fixed by step
+                    ( 1.0,    5, 19.9),   # From this step onwards, the rate
+                    ( 5.0, 10.0, 17.9),   #   is linear with weight
+                    (10.0, 20.0, 16.5),
+                    (20.0, 40.0, 15.9)]#(20.0, float('inf'), 15.9)]
     weight_threshold = 1
     if isinstance(total_weight, (int, float)):  # Float input (immediate calculation)
         if total_weight == 0:
@@ -108,28 +108,28 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
         upbound_step6 = weight_steps[5][1]
         upbound_step7 = weight_steps[6][1]
         upbound_step8 = weight_steps[7][1]
-        w1 = pulp.LpVariable(f'w1_{total_weight}', lowBound=lowbound_step1, upBound=upbound_step1)
+        w1 = pulp.LpVariable(f'w1_{total_weight}', lowBound=0, upBound=upbound_step1-lowbound_step1)
         aux1 = pulp.LpVariable(f'w1_{total_weight}_aux', cat='Binary')
         w1_active = pulp.LpVariable(f'w1_{total_weight}_active', cat='Binary')
-        w2 = pulp.LpVariable(f'w2_{total_weight}', lowBound=lowbound_step2, upBound=upbound_step2)
+        w2 = pulp.LpVariable(f'w2_{total_weight}', lowBound=0, upBound=upbound_step2-lowbound_step2)
         aux2 = pulp.LpVariable(f'w2_{total_weight}_aux', cat='Binary')
         w2_active = pulp.LpVariable(f'w2_{total_weight}_active', cat='Binary')
-        w3 = pulp.LpVariable(f'w3_{total_weight}', lowBound=lowbound_step3, upBound=upbound_step3)
+        w3 = pulp.LpVariable(f'w3_{total_weight}', lowBound=0, upBound=upbound_step3-lowbound_step3)
         aux3 = pulp.LpVariable(f'w3_{total_weight}_aux', cat='Binary')
         w3_active = pulp.LpVariable(f'w3_{total_weight}_active', cat='Binary')
-        w4 = pulp.LpVariable(f'w4_{total_weight}', lowBound=lowbound_step4, upBound=upbound_step4)
+        w4 = pulp.LpVariable(f'w4_{total_weight}', lowBound=0, upBound=upbound_step4-lowbound_step4)
         aux4 = pulp.LpVariable(f'w4_{total_weight}_aux', cat='Binary')
         w4_active = pulp.LpVariable(f'w4_{total_weight}_active', cat='Binary')
-        w5 = pulp.LpVariable(f'w5_{total_weight}', lowBound=lowbound_step5, upBound=upbound_step5)
+        w5 = pulp.LpVariable(f'w5_{total_weight}', lowBound=0, upBound=upbound_step5-lowbound_step5)
         aux5 = pulp.LpVariable(f'w5_{total_weight}_aux', cat='Binary')
         w5_active = pulp.LpVariable(f'w5_{total_weight}_active', cat='Binary')
-        w6 = pulp.LpVariable(f'w6_{total_weight}', lowBound=lowbound_step6, upBound=upbound_step6)
+        w6 = pulp.LpVariable(f'w6_{total_weight}', lowBound=0, upBound=upbound_step6-lowbound_step6)
         aux6 = pulp.LpVariable(f'w6_{total_weight}_aux', cat='Binary')
         w6_active = pulp.LpVariable(f'w6_{total_weight}_active', cat='Binary')
-        w7 = pulp.LpVariable(f'w7_{total_weight}', lowBound=lowbound_step7, upBound=upbound_step7)
+        w7 = pulp.LpVariable(f'w7_{total_weight}', lowBound=0, upBound=upbound_step7-lowbound_step7)
         aux7 = pulp.LpVariable(f'w7_{total_weight}_aux', cat='Binary')
         w7_active = pulp.LpVariable(f'w7_{total_weight}_active', cat='Binary')
-        w8 = pulp.LpVariable(f'w8_{total_weight}', lowBound=lowbound_step8, upBound=upbound_step8)
+        w8 = pulp.LpVariable(f'w8_{total_weight}', lowBound=0, upBound=upbound_step8-lowbound_step8)
         aux8 = pulp.LpVariable(f'w8_{total_weight}_aux', cat='Binary')
         w8_active = pulp.LpVariable(f'w8_{total_weight}_active', cat='Binary')
         prob += total_weight == w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8
@@ -221,8 +221,8 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                                             (1 - w8_active),
                                           auxiliary_var=aux8,
                                           prob=prob)
-        
-        return rate_step1*w1_active + rate_step2*w2_active + rate_step3*w3_active + rate_step4*w4_active \
+
+        return fixed_rate + rate_step1*w1_active + rate_step2*w2_active + rate_step3*w3_active + rate_step4*w4_active \
             + rate_step5*w5 + rate_step6*w6 + rate_step7*w7 + rate_step8*w8
 
 def package_cost_miami_box(total_weight, promo=False, sum=True):
