@@ -16,52 +16,7 @@ def minlp_optimization(courier, items, max_packages=None,
         max_exemptions = MAX_EXEMPTIONS_PER_YEAR
     elif max_exemptions < 0:
         max_exemptions = 0
-    # Couriers and costs (stepwise functions)
-    def courier_cost(weight, prob):
-        if isinstance(weight, float):
-            if weight==0:
-                return 0
-            if weight <= 1:
-                return 5
-            elif weight <= 2:
-                return 5 + (weight - 1) * 4
-            else:
-                return 5 + 4 + (weight - 2) * 3.5
-        elif isinstance(weight, pulp.LpVariable):
-            w1 = pulp.LpVariable(f'w1_{weight}', lowBound=0, upBound=1)
-            aux1 = pulp.LpVariable(f'w1_{weight}_aux', cat='Binary')
-            w2 = pulp.LpVariable(f'w2_{weight}', lowBound=0, upBound=1)
-            aux2 = pulp.LpVariable(f'w2_{weight}_aux', cat='Binary')
-            w2_active = pulp.LpVariable(f'w2_{weight}_active', cat='Binary')
-            w3 = pulp.LpVariable(f'w3_{weight}', lowBound=0)
-            aux3 = pulp.LpVariable(f'w3_{weight}_aux', cat='Binary')
-            w3_active = pulp.LpVariable(f'w3_{weight}_active', cat='Binary')
-            prob += weight == w1 + w2 + w3  # Ensure weight constraints
-            prob = add_linear_constraints_min(result=w1,
-                                              value1=1,
-                                              value2=weight,
-                                              auxiliary_var=aux1,
-                                              prob=prob)
-            prob = add_linear_constraints_var_greater_than_value(result=w2_active,
-                                                                 var=weight,
-                                                                 value=1,
-                                                                 prob=prob)
-            prob = add_linear_constraints_min(result=w2,
-                                              value1=1*w2_active,
-                                              value2=weight-1 + M * (1 - w2_active),
-                                              auxiliary_var=aux2,
-                                              prob=prob)
-            prob = add_linear_constraints_var_greater_than_value(result=w3_active,
-                                                                 var=weight,
-                                                                 value=2,
-                                                                 prob=prob)
-            prob = add_linear_constraints_min(result=w3,
-                                              value1=1*w3_active,
-                                              value2=weight-2 + M * (1 - w3_active),
-                                              auxiliary_var=aux3,
-                                              prob=prob)
-            return 5 * w1 + 4 * w2 + 3.5 * w3
-    #courier_cost = couriers[courier]["cost_function"]
+    courier_cost = couriers[courier]["cost_function"]
     # Initialize PuLP problem
     prob = pulp.LpProblem("Minimize_Import_Costs", pulp.LpMinimize)
     # Binary variable: whether item i is in package j
@@ -83,7 +38,6 @@ def minlp_optimization(courier, items, max_packages=None,
     transport_cost = pulp.LpVariable.dicts("transport_cost", range(num_packages), lowBound=0)
     # Total cost for each package
     total_package_cost = pulp.LpVariable.dicts("total_package_cost", range(num_packages), lowBound=0)
-
     # RESTRICTIONS
     # ============
     # All items must be included on a single package
@@ -102,7 +56,6 @@ def minlp_optimization(courier, items, max_packages=None,
         prob += weight[j] == pulp.lpSum([items[i][2] * x[i, j] for i in range(num_items)])  # Weight constraint
         prob += weight[j] <= MAX_WEIGHT_EXEMPTION  # Max weight constraint
         prob += transport_cost[j] == courier_cost(weight[j], prob)
-        
         # Import fee calculation
         prob += nominal_import_fee[j] == IMPORT_FEE_PERCENT * package_price[j]
         # Import fee is lower-capped at MINIMUM_FEE_PAYMENT
@@ -148,4 +101,3 @@ def minlp_optimization(courier, items, max_packages=None,
                               import_fee_exemption=import_fee_exemption)
             optimal_solution.add_package(package)
     return optimal_solution
-
