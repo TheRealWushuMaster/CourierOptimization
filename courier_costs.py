@@ -222,7 +222,7 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                                           auxiliary_var=aux8,
                                           prob=prob)
 
-        return fixed_rate + rate_step1*w1_active + rate_step2*w2_active + rate_step3*w3_active + rate_step4*w4_active \
+        return fixed_rate*w1_active + rate_step1*w1_active + rate_step2*w2_active + rate_step3*w3_active + rate_step4*w4_active \
             + rate_step5*w5 + rate_step6*w6 + rate_step7*w7 + rate_step8*w8
 
 def package_cost_miami_box(total_weight, promo=False, sum=True):
