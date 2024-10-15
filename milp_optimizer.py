@@ -90,7 +90,7 @@ def minlp_optimization(courier, items, max_packages=None,
         if assigned_items:
             total_price = sum(item[1] for item in assigned_items)
             total_weight = sum(item[2] for item in assigned_items)
-            transport_cost = pulp.value(courier_cost(total_weight, prob))
+            transport_cost = pulp.value(transport_cost[j])#pulp.value(courier_cost(total_weight, prob))
             import_fee = pulp.value(final_import_fee[j])
             import_fee_exemption = bool(pulp.value(import_fee_exempted[j]))
             # Create a Package object

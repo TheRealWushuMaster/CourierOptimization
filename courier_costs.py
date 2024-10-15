@@ -66,7 +66,7 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                     ( 1.0,    5, 19.9),   # From this step onwards, the rate
                     ( 5.0, 10.0, 17.9),   #   is linear with weight
                     (10.0, 20.0, 16.5),
-                    (20.0, 40.0, 15.9)]#(20.0, float('inf'), 15.9)]
+                    (20.0, 40.0, 15.9)]
     weight_threshold = 1
     if isinstance(total_weight, (int, float)):  # Float input (immediate calculation)
         if total_weight == 0:
@@ -140,8 +140,7 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                                                              prob=prob)
         prob = add_linear_constraints_min(result=w1,
                                           value1=(upbound_step1-lowbound_step1)*w1_active,
-                                          value2=total_weight-lowbound_step1 + M *
-                                            (1 - w1_active),
+                                          value2=total_weight-lowbound_step1 + M * (1 - w1_active),
                                           auxiliary_var=aux1,
                                           prob=prob)
         # Second step
@@ -151,8 +150,7 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                                                              prob=prob)
         prob = add_linear_constraints_min(result=w2,
                                           value1=(upbound_step2-lowbound_step2)*w2_active,
-                                          value2=total_weight-lowbound_step2 + M *
-                                            (1 - w2_active),
+                                          value2=total_weight-lowbound_step2 + M * (1 - w2_active),
                                           auxiliary_var=aux2,
                                           prob=prob)
         # Third step
@@ -162,8 +160,7 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                                                              prob=prob)
         prob = add_linear_constraints_min(result=w3,
                                           value1=(upbound_step3-lowbound_step3)*w3_active,
-                                          value2=total_weight-lowbound_step3 + M *
-                                            (1 - w3_active),
+                                          value2=total_weight-lowbound_step3 + M * (1 - w3_active),
                                           auxiliary_var=aux3,
                                           prob=prob)
         # Fourth step
@@ -173,8 +170,7 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                                                              prob=prob)
         prob = add_linear_constraints_min(result=w4,
                                           value1=(upbound_step4-lowbound_step4)*w4_active,
-                                          value2=total_weight-lowbound_step4 + M *
-                                            (1 - w4_active),
+                                          value2=total_weight-lowbound_step4 + M * (1 - w4_active),
                                           auxiliary_var=aux4,
                                           prob=prob)
         # Fifth step
@@ -184,8 +180,7 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                                                              prob=prob)
         prob = add_linear_constraints_min(result=w5,
                                           value1=(upbound_step5-lowbound_step5)*w5_active,
-                                          value2=total_weight-lowbound_step5 + M *
-                                            (1 - w5_active),
+                                          value2=total_weight-lowbound_step5 + M * (1 - w5_active),
                                           auxiliary_var=aux5,
                                           prob=prob)
         # Sixth step
@@ -195,8 +190,7 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                                                              prob=prob)
         prob = add_linear_constraints_min(result=w6,
                                           value1=(upbound_step6-lowbound_step6)*w6_active,
-                                          value2=total_weight-lowbound_step6 + M *
-                                            (1 - w6_active),
+                                          value2=total_weight-lowbound_step6 + M * (1 - w6_active),
                                           auxiliary_var=aux6,
                                           prob=prob)
         # Seventh step
@@ -206,8 +200,7 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                                                              prob=prob)
         prob = add_linear_constraints_min(result=w7,
                                           value1=(upbound_step7-lowbound_step7)*w7_active,
-                                          value2=total_weight-lowbound_step7 + M *
-                                            (1 - w7_active),
+                                          value2=total_weight-lowbound_step7 + M * (1 - w7_active),
                                           auxiliary_var=aux7,
                                           prob=prob)
         # Eighth step
@@ -217,12 +210,13 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                                                              prob=prob)
         prob = add_linear_constraints_min(result=w8,
                                           value1=(upbound_step8-lowbound_step8)*w8_active,
-                                          value2=total_weight-lowbound_step8 + M *
-                                            (1 - w8_active),
+                                          value2=total_weight-lowbound_step8 + M * (1 - w8_active),
                                           auxiliary_var=aux8,
                                           prob=prob)
 
-        return fixed_rate*w1_active + rate_step1*w1_active + rate_step2*w2_active + rate_step3*w3_active + rate_step4*w4_active \
+        return fixed_rate*w1_active + rate_step1*(w1_active-w2_active) \
+            + rate_step2*(w2_active-w3_active) + rate_step3*(w3_active-w4_active) \
+            + rate_step4*(w4_active-w5_active) \
             + rate_step5*w5 + rate_step6*w6 + rate_step7*w7 + rate_step8*w8
 
 def package_cost_miami_box(total_weight, promo=False, sum=True):
