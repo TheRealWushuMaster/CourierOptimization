@@ -3,7 +3,7 @@ from settings import *
 from routines import *
 from courier_services import *
 
-def minlp_optimization(courier, items, max_packages=None,
+def milp_optimization(courier, items, max_packages=None,
                        max_exemptions=MAX_EXEMPTIONS_PER_YEAR):
     num_items = len(items)
     if max_packages == None:
@@ -43,7 +43,7 @@ def minlp_optimization(courier, items, max_packages=None,
     # All items must be included on a single package
     for i in range(num_items):
         prob += pulp.lpSum(x[i, j] for j in range(num_packages)) == 1
-    # Price and weight constraints
+    # Price, weight, and import fee constraints
     for j in range(num_packages):
         prob += package_price[j] == pulp.lpSum([items[i][1] * x[i, j]
                                                 for i in range(num_items)])

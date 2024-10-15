@@ -5,16 +5,16 @@ from purchased_items import *
 
 # BRUTE FORCE OPTIMIZATION
 # ========================
-optimal_solution, all_solutions = brute_force_optimization(items=purchased_items,
-                                                           courier=selected_courier,
-                                                           max_exemptions=fee_exemptions)
+#optimal_solution, all_solutions = brute_force_optimization(items=purchased_items,
+#                                                           courier=selected_courier,
+#                                                           max_exemptions=fee_exemptions)
 
 # MILP OPTIMIZATION
 # ==================
-#optimal_solution = minlp_optimization(courier=selected_courier,
-#                                      items=purchased_items,
-#                                      max_packages=None,
-#                                      max_exemptions=fee_exemptions)
+optimal_solution = milp_optimization(courier=selected_courier,
+                                      items=purchased_items,
+                                      max_packages=None,
+                                      max_exemptions=fee_exemptions)
 
 # DISPLAY THE RESULTS
 # ===================
