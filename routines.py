@@ -73,6 +73,23 @@ def display_solution(solution, filename=None):
 
 # ADD RESTRAINTS FOR COMMON CONDITIONS
 # ====================================
+def add_linear_constraints_var_within_limits(result, var, var_low, var_high,
+                                             limit_low, limit_high, prob,
+                                             avoid_low_limit=False):
+    # If avoid_low = True: result = True if limit_low < var < limit_high
+    # If avoid_low = False: result = True if limit_low <= var < limit_high
+    if avoid_low_limit:
+        prob = add_linear_constraints_var_greater_than_value(result=var_low, var=var,
+                                                              value=limit_low, prob=prob)
+    else:
+        prob = add_linear_constraints_var_greater_than_or_equal_value(result=var_low, var=var,
+                                                                      value=limit_low, prob=prob)
+    prob = add_linear_constraints_var_less_than_value(result=var_high, var=var,
+                                                      value=limit_high, prob=prob)
+    prob = add_linear_contraints_multiply_binary_vars(result=result, var1=var_low,
+                                                      var2=var_high, prob=prob)
+    return prob
+
 def add_linear_constraints_max(result, value1, value2, auxiliary_var, prob):
     # result = max(value1, value2)
     prob += result >= value1
@@ -95,19 +112,23 @@ def add_linear_constraints_prod_bin_cont(result, bin_var, cont_var, prob):
     return prob
 
 def add_linear_constraints_var_greater_than_value(result, var, value, prob):
+    # result = True if var > value
     prob += var - value <= M * result
     return prob
 
 def add_linear_constraints_var_less_than_value(result, var, value, prob):
+    # result = True if var < value
     prob += value - var <= M * result
     return prob
 
 def add_linear_constraints_var_greater_than_or_equal_value(result, var, value, prob):
-    prob += var + MIN_TOLERANCE - value <= M * result
+    # result = True if var >= value, assuming a tolerance
+    prob += var - (value - MIN_TOLERANCE) <= M * result
     return prob
 
 def add_linear_constraints_var_less_than_or_equal_value(result, var, value, prob):
-    prob += value - var - MIN_TOLERANCE <= M * result
+    # result = True if var <= value, assuming a tolerance
+    prob += value - (var + MIN_TOLERANCE) <= M * result
     return prob
 
 def add_linear_constraints_ceil(result, var, prob):

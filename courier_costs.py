@@ -59,6 +59,7 @@ def package_cost_test(total_weight, prob=None, promo=False, sum=True):
 
 def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
     fixed_rate = 5
+    fixed_step_threshold = 4
     weight_steps = [( 0.0,  0.2, 10.9),
                     ( 0.2,  0.5, 15.9),
                     ( 0.5,  0.7, 18.9),
@@ -67,6 +68,7 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                     ( 5.0, 10.0, 17.9),   #   is linear with the total weight
                     (10.0, 20.0, 16.5),
                     (20.0, 40.0, 15.9)]
+    num_steps = len(weight_steps)
     weight_threshold = 1
     if isinstance(total_weight, (int, float)):  # Float input (immediate calculation)
         if total_weight == 0:
@@ -84,147 +86,35 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                                      variable_rate=variable_rate,
                                      sum=sum)
     elif isinstance(total_weight, pulp.LpVariable):
-        rate_step1 = weight_steps[0][2]
-        rate_step2 = weight_steps[1][2]
-        rate_step3 = weight_steps[2][2]
-        rate_step4 = weight_steps[3][2]
-        rate_step5 = weight_steps[4][2]
-        rate_step6 = weight_steps[5][2]
-        rate_step7 = weight_steps[6][2]
-        rate_step8 = weight_steps[7][2]
-        lowbound_step1 = weight_steps[0][0]
-        lowbound_step2 = weight_steps[1][0]
-        lowbound_step3 = weight_steps[2][0]
-        lowbound_step4 = weight_steps[3][0]
-        lowbound_step5 = weight_steps[4][0]
-        lowbound_step6 = weight_steps[5][0]
-        lowbound_step7 = weight_steps[6][0]
-        lowbound_step8 = weight_steps[7][0]
-        upbound_step1 = weight_steps[0][1]
-        upbound_step2 = weight_steps[1][1]
-        upbound_step3 = weight_steps[2][1]
-        upbound_step4 = weight_steps[3][1]
-        upbound_step5 = weight_steps[4][1]
-        upbound_step6 = weight_steps[5][1]
-        upbound_step7 = weight_steps[6][1]
-        upbound_step8 = weight_steps[7][1]
-        w1 = pulp.LpVariable(f'w1_{total_weight}', lowBound=0)
-        w1_lb = pulp.LpVariable(f'w1_{total_weight}_lb', cat='Binary')
-        w1_ub = pulp.LpVariable(f'w1_{total_weight}_ub', cat='Binary')
-        w1_active = pulp.LpVariable(f'w1_{total_weight}_active', cat='Binary')
-        
-        w2 = pulp.LpVariable(f'w2_{total_weight}', lowBound=0)
-        w2_lb = pulp.LpVariable(f'w2_{total_weight}_lb', cat='Binary')
-        w2_ub = pulp.LpVariable(f'w2_{total_weight}_ub', cat='Binary')
-        w2_active = pulp.LpVariable(f'w2_{total_weight}_active', cat='Binary')
-        
-        w3 = pulp.LpVariable(f'w3_{total_weight}', lowBound=0)
-        w3_lb = pulp.LpVariable(f'w3_{total_weight}_lb', cat='Binary')
-        w3_ub = pulp.LpVariable(f'w3_{total_weight}_ub', cat='Binary')
-        w3_active = pulp.LpVariable(f'w3_{total_weight}_active', cat='Binary')
-        
-        w4 = pulp.LpVariable(f'w4_{total_weight}', lowBound=0)
-        w4_lb = pulp.LpVariable(f'w4_{total_weight}_lb', cat='Binary')
-        w4_ub = pulp.LpVariable(f'w4_{total_weight}_ub', cat='Binary')
-        w4_active = pulp.LpVariable(f'w4_{total_weight}_active', cat='Binary')
-        
-        w5 = pulp.LpVariable(f'w5_{total_weight}', lowBound=0)
-        w5_lb = pulp.LpVariable(f'w5_{total_weight}_lb', cat='Binary')
-        w5_ub = pulp.LpVariable(f'w5_{total_weight}_ub', cat='Binary')
-        w5_active = pulp.LpVariable(f'w5_{total_weight}_active', cat='Binary')
-        
-        w6 = pulp.LpVariable(f'w6_{total_weight}', lowBound=0)
-        w6_lb = pulp.LpVariable(f'w6_{total_weight}_lb', cat='Binary')
-        w6_ub = pulp.LpVariable(f'w6_{total_weight}_ub', cat='Binary')
-        w6_active = pulp.LpVariable(f'w6_{total_weight}_active', cat='Binary')
-        
-        w7 = pulp.LpVariable(f'w7_{total_weight}', lowBound=0)
-        w7_lb = pulp.LpVariable(f'w7_{total_weight}_lb', cat='Binary')
-        w7_ub = pulp.LpVariable(f'w7_{total_weight}_ub', cat='Binary')
-        w7_active = pulp.LpVariable(f'w7_{total_weight}_active', cat='Binary')
-        
-        w8 = pulp.LpVariable(f'w8_{total_weight}', lowBound=0)
-        w8_lb = pulp.LpVariable(f'w8_{total_weight}_lb', cat='Binary')
-        w8_ub = pulp.LpVariable(f'w8_{total_weight}_ub', cat='Binary')
-        w8_active = pulp.LpVariable(f'w8_{total_weight}_active', cat='Binary')
-
-        prob += w1_active+w2_active+w3_active+w4_active+w5_active+w6_active+w7_active+w8_active <= 1
-        # First step
-        prob = add_linear_constraints_var_greater_than_value(result=w1_lb, var=total_weight,
-                                                             value=lowbound_step1, prob=prob)
-        prob = add_linear_constraints_var_less_than_value(result=w1_ub, var=total_weight,
-                                                          value=upbound_step1, prob=prob)
-        prob = add_linear_contraints_multiply_binary_vars(result=w1_active, var1=w1_lb,
-                                                          var2=w1_ub, prob=prob)
-        prob = add_linear_constraints_prod_bin_cont(result=w1, bin_var=w1_active,
-                                                    cont_var=total_weight, prob=prob)
-        # Second step
-        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w2_lb, var=total_weight,
-                                                                      value=lowbound_step2, prob=prob)
-        prob = add_linear_constraints_var_less_than_value(result=w2_ub, var=total_weight,
-                                                          value=upbound_step2, prob=prob)
-        prob = add_linear_contraints_multiply_binary_vars(result=w2_active, var1=w2_lb,
-                                                          var2=w2_ub, prob=prob)
-        prob = add_linear_constraints_prod_bin_cont(result=w2, bin_var=w2_active,
-                                                    cont_var=total_weight, prob=prob)
-        # Third step
-        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w3_lb, var=total_weight,
-                                                                      value=lowbound_step3, prob=prob)
-        prob = add_linear_constraints_var_less_than_value(result=w3_ub, var=total_weight,
-                                                          value=upbound_step3, prob=prob)
-        prob = add_linear_contraints_multiply_binary_vars(result=w3_active, var1=w3_lb,
-                                                          var2=w3_ub, prob=prob)
-        prob = add_linear_constraints_prod_bin_cont(result=w3, bin_var=w3_active,
-                                                    cont_var=total_weight, prob=prob)
-        # Fourth step
-        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w4_lb, var=total_weight,
-                                                                      value=lowbound_step4, prob=prob)
-        prob = add_linear_constraints_var_less_than_value(result=w4_ub, var=total_weight,
-                                                          value=upbound_step4, prob=prob)
-        prob = add_linear_contraints_multiply_binary_vars(result=w4_active, var1=w4_lb,
-                                                          var2=w4_ub, prob=prob)
-        prob = add_linear_constraints_prod_bin_cont(result=w4, bin_var=w4_active,
-                                                    cont_var=total_weight, prob=prob)
-        # Fifth step
-        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w5_lb, var=total_weight,
-                                                                      value=lowbound_step5, prob=prob)
-        prob = add_linear_constraints_var_less_than_value(result=w5_ub, var=total_weight,
-                                                          value=upbound_step5, prob=prob)
-        prob = add_linear_contraints_multiply_binary_vars(result=w5_active, var1=w5_lb,
-                                                          var2=w5_ub, prob=prob)
-        prob = add_linear_constraints_prod_bin_cont(result=w5, bin_var=w5_active,
-                                                    cont_var=total_weight, prob=prob)
-        # Sixth step
-        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w6_lb, var=total_weight,
-                                                                      value=lowbound_step6, prob=prob)
-        prob = add_linear_constraints_var_less_than_value(result=w6_ub, var=total_weight,
-                                                          value=upbound_step6, prob=prob)
-        prob = add_linear_contraints_multiply_binary_vars(result=w6_active, var1=w6_lb,
-                                                          var2=w6_ub, prob=prob)
-        prob = add_linear_constraints_prod_bin_cont(result=w6, bin_var=w6_active,
-                                                    cont_var=total_weight, prob=prob)
-        # Seventh step
-        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w7_lb, var=total_weight,
-                                                                      value=lowbound_step7, prob=prob)
-        prob = add_linear_constraints_var_less_than_value(result=w7_ub, var=total_weight,
-                                                          value=upbound_step7, prob=prob)
-        prob = add_linear_contraints_multiply_binary_vars(result=w7_active, var1=w7_lb,
-                                                          var2=w7_ub, prob=prob)
-        prob = add_linear_constraints_prod_bin_cont(result=w7, bin_var=w7_active,
-                                                    cont_var=total_weight, prob=prob)
-        # Eighth step
-        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w8_lb, var=total_weight,
-                                                                      value=lowbound_step8, prob=prob)
-        prob = add_linear_constraints_var_less_than_value(result=w8_ub, var=total_weight,
-                                                          value=upbound_step8, prob=prob)
-        prob = add_linear_contraints_multiply_binary_vars(result=w8_active, var1=w8_lb,
-                                                          var2=w8_ub, prob=prob)
-        prob = add_linear_constraints_prod_bin_cont(result=w8, bin_var=w8_active,
-                                                    cont_var=total_weight, prob=prob)
-
-        return fixed_rate*(w1_active+w2_active+w3_active+w4_active+w5_active+w6_active+w7_active+w8_active) \
-            + rate_step1*w1_active + rate_step2*w2_active + rate_step3*w3_active + rate_step4*w4_active \
-            + rate_step5*w5 + rate_step6*w6 + rate_step7*w7 + rate_step8*w8
+        rates = [step[2] for step in weight_steps]
+        lowbounds = [step[0] for step in weight_steps]
+        upbounds = [step[1] for step in weight_steps]
+        w_vars = []
+        w_lb_vars = []
+        w_ub_vars = []
+        w_active_vars = []
+        for i in range(num_steps):
+            w_var = pulp.LpVariable(f'w{i+1}_{total_weight}', lowBound=0)
+            w_lb_var = pulp.LpVariable(f'w{i+1}_{total_weight}_lb', cat='Binary')
+            w_ub_var = pulp.LpVariable(f'w{i+1}_{total_weight}_ub', cat='Binary')
+            w_active_var = pulp.LpVariable(f'w{i+1}_{total_weight}_active', cat='Binary')
+            w_vars.append(w_var)
+            w_lb_vars.append(w_lb_var)
+            w_ub_vars.append(w_ub_var)
+            w_active_vars.append(w_active_var)
+        prob += pulp.lpSum(w_active_vars) <= 1
+        for i in range(num_steps):
+            prob = add_linear_constraints_var_within_limits(result=w_active_vars[i], var=total_weight,
+                                                            var_low=w_lb_vars[i], var_high=w_ub_vars[i],
+                                                            limit_low=lowbounds[i],
+                                                            limit_high=upbounds[i], prob=prob,
+                                                            avoid_low_limit=True if i==0 else False)
+            prob = add_linear_constraints_prod_bin_cont(result=w_vars[i], bin_var=w_active_vars[i],
+                                                        cont_var=total_weight, prob=prob)
+        fixed_rate_sum = fixed_rate * pulp.lpSum(w_active_vars)
+        fixed_step_rate_sum = pulp.lpSum([rates[i] * w_active_vars[i] for i in range(fixed_step_threshold)])
+        linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
+        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
 
 def package_cost_miami_box(total_weight, promo=False, sum=True):
     fixed_rate = 6
