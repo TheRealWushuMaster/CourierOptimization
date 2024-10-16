@@ -48,7 +48,6 @@ def milp_optimization(courier, items, max_packages=None,
         prob += package_price[j] == pulp.lpSum([items[i][1] * x[i, j]
                                                 for i in range(num_items)])
         prob += package_price[j] <= MAX_PRICE_EXEMPTION # Price constraint
-        #prob += package_price[j] <= M * package_price_is_positive[j]
         prob = add_linear_constraints_var_greater_than_value(result=package_price_is_positive[j],
                                                              var=package_price[j],
                                                              value=0,
@@ -78,19 +77,15 @@ def milp_optimization(courier, items, max_packages=None,
     with open("variable_values.log", "w") as f:
         for var in prob.variables():
             f.write(f"{var.name} ==> {var.varValue}\n")
-    print(f"Objective = {pulp.value(prob.objective)}")
+    print(f"** Objective function optimal value = {pulp.value(prob.objective)}")
     # Create an object with the optimal solution
     optimal_solution = PackageSolution(courier=courier)
-    for i, pack in enumerate(optimal_solution.packages):
-        print(i+1)
-        print(pack)
-        print()
     for j in range(num_packages):
         assigned_items = [(items[i][0], items[i][1], items[i][2]) for i in range(num_items) if pulp.value(x[i, j]) == 1]
         if assigned_items:
             total_price = sum(item[1] for item in assigned_items)
             total_weight = sum(item[2] for item in assigned_items)
-            transport_cost = pulp.value(transport_cost[j])#pulp.value(courier_cost(total_weight, prob))
+            transport_cost = courier_cost(total_weight)#pulp.value(transport_cost[j])
             import_fee = pulp.value(final_import_fee[j])
             import_fee_exemption = bool(pulp.value(import_fee_exempted[j]))
             # Create a Package object

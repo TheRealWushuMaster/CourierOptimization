@@ -108,115 +108,122 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
         upbound_step6 = weight_steps[5][1]
         upbound_step7 = weight_steps[6][1]
         upbound_step8 = weight_steps[7][1]
-        w1 = pulp.LpVariable(f'w1_{total_weight}', lowBound=0, upBound=upbound_step1)
-        aux1 = pulp.LpVariable(f'w1_{total_weight}_aux', cat='Binary')
+        w1 = pulp.LpVariable(f'w1_{total_weight}', lowBound=0)
+        w1_lb = pulp.LpVariable(f'w1_{total_weight}_lb', cat='Binary')
+        w1_ub = pulp.LpVariable(f'w1_{total_weight}_ub', cat='Binary')
         w1_active = pulp.LpVariable(f'w1_{total_weight}_active', cat='Binary')
-        w2 = pulp.LpVariable(f'w2_{total_weight}', lowBound=0, upBound=upbound_step2)
-        aux2 = pulp.LpVariable(f'w2_{total_weight}_aux', cat='Binary')
+        
+        w2 = pulp.LpVariable(f'w2_{total_weight}', lowBound=0)
+        w2_lb = pulp.LpVariable(f'w2_{total_weight}_lb', cat='Binary')
+        w2_ub = pulp.LpVariable(f'w2_{total_weight}_ub', cat='Binary')
         w2_active = pulp.LpVariable(f'w2_{total_weight}_active', cat='Binary')
-        w3 = pulp.LpVariable(f'w3_{total_weight}', lowBound=0, upBound=upbound_step3)
-        aux3 = pulp.LpVariable(f'w3_{total_weight}_aux', cat='Binary')
+        
+        w3 = pulp.LpVariable(f'w3_{total_weight}', lowBound=0)
+        w3_lb = pulp.LpVariable(f'w3_{total_weight}_lb', cat='Binary')
+        w3_ub = pulp.LpVariable(f'w3_{total_weight}_ub', cat='Binary')
         w3_active = pulp.LpVariable(f'w3_{total_weight}_active', cat='Binary')
-        w4 = pulp.LpVariable(f'w4_{total_weight}', lowBound=0, upBound=upbound_step4)
-        aux4 = pulp.LpVariable(f'w4_{total_weight}_aux', cat='Binary')
+        
+        w4 = pulp.LpVariable(f'w4_{total_weight}', lowBound=0)
+        w4_lb = pulp.LpVariable(f'w4_{total_weight}_lb', cat='Binary')
+        w4_ub = pulp.LpVariable(f'w4_{total_weight}_ub', cat='Binary')
         w4_active = pulp.LpVariable(f'w4_{total_weight}_active', cat='Binary')
-        w5 = pulp.LpVariable(f'w5_{total_weight}', lowBound=0, upBound=upbound_step5)
-        aux5 = pulp.LpVariable(f'w5_{total_weight}_aux', cat='Binary')
+        
+        w5 = pulp.LpVariable(f'w5_{total_weight}', lowBound=0)
+        w5_lb = pulp.LpVariable(f'w5_{total_weight}_lb', cat='Binary')
+        w5_ub = pulp.LpVariable(f'w5_{total_weight}_ub', cat='Binary')
         w5_active = pulp.LpVariable(f'w5_{total_weight}_active', cat='Binary')
-        w6 = pulp.LpVariable(f'w6_{total_weight}', lowBound=0, upBound=upbound_step6)
-        aux6 = pulp.LpVariable(f'w6_{total_weight}_aux', cat='Binary')
+        
+        w6 = pulp.LpVariable(f'w6_{total_weight}', lowBound=0)
+        w6_lb = pulp.LpVariable(f'w6_{total_weight}_lb', cat='Binary')
+        w6_ub = pulp.LpVariable(f'w6_{total_weight}_ub', cat='Binary')
         w6_active = pulp.LpVariable(f'w6_{total_weight}_active', cat='Binary')
-        w7 = pulp.LpVariable(f'w7_{total_weight}', lowBound=0, upBound=upbound_step7)
-        aux7 = pulp.LpVariable(f'w7_{total_weight}_aux', cat='Binary')
+        
+        w7 = pulp.LpVariable(f'w7_{total_weight}', lowBound=0)
+        w7_lb = pulp.LpVariable(f'w7_{total_weight}_lb', cat='Binary')
+        w7_ub = pulp.LpVariable(f'w7_{total_weight}_ub', cat='Binary')
         w7_active = pulp.LpVariable(f'w7_{total_weight}_active', cat='Binary')
-        w8 = pulp.LpVariable(f'w8_{total_weight}', lowBound=0, upBound=upbound_step8)
-        aux8 = pulp.LpVariable(f'w8_{total_weight}_aux', cat='Binary')
+        
+        w8 = pulp.LpVariable(f'w8_{total_weight}', lowBound=0)
+        w8_lb = pulp.LpVariable(f'w8_{total_weight}_lb', cat='Binary')
+        w8_ub = pulp.LpVariable(f'w8_{total_weight}_ub', cat='Binary')
         w8_active = pulp.LpVariable(f'w8_{total_weight}_active', cat='Binary')
-        prob += total_weight == w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8
-        # First step
-        prob = add_linear_constraints_var_greater_than_value(result=w1_active,
-                                                             var=total_weight,
-                                                             value=lowbound_step1,
-                                                             prob=prob)
-        prob = add_linear_constraints_min(result=w1,
-                                          value1=(upbound_step1-lowbound_step1)*w1_active,
-                                          value2=total_weight-lowbound_step1 + M * (1 - w1_active),
-                                          auxiliary_var=aux1,
-                                          prob=prob)
-        # Second step
-        prob = add_linear_constraints_var_greater_than_value(result=w2_active,
-                                                             var=total_weight,
-                                                             value=lowbound_step2,
-                                                             prob=prob)
-        prob = add_linear_constraints_min(result=w2,
-                                          value1=(upbound_step2-lowbound_step2)*w2_active,
-                                          value2=total_weight-lowbound_step2 + M * (1 - w2_active),
-                                          auxiliary_var=aux2,
-                                          prob=prob)
-        # Third step
-        prob = add_linear_constraints_var_greater_than_value(result=w3_active,
-                                                             var=total_weight,
-                                                             value=lowbound_step3,
-                                                             prob=prob)
-        prob = add_linear_constraints_min(result=w3,
-                                          value1=(upbound_step3-lowbound_step3)*w3_active,
-                                          value2=total_weight-lowbound_step3 + M * (1 - w3_active),
-                                          auxiliary_var=aux3,
-                                          prob=prob)
-        # Fourth step
-        prob = add_linear_constraints_var_greater_than_value(result=w4_active,
-                                                             var=total_weight,
-                                                             value=lowbound_step4,
-                                                             prob=prob)
-        prob = add_linear_constraints_min(result=w4,
-                                          value1=(upbound_step4-lowbound_step4)*w4_active,
-                                          value2=total_weight-lowbound_step4 + M * (1 - w4_active),
-                                          auxiliary_var=aux4,
-                                          prob=prob)
-        # Fifth step
-        prob = add_linear_constraints_var_greater_than_value(result=w5_active,
-                                                             var=total_weight,
-                                                             value=lowbound_step5,
-                                                             prob=prob)
-        prob = add_linear_constraints_min(result=w5,
-                                          value1=(upbound_step5-lowbound_step5)*w5_active,
-                                          value2=total_weight-lowbound_step5 + M * (1 - w5_active),
-                                          auxiliary_var=aux5,
-                                          prob=prob)
-        # Sixth step
-        prob = add_linear_constraints_var_greater_than_value(result=w6_active,
-                                                             var=total_weight,
-                                                             value=lowbound_step6,
-                                                             prob=prob)
-        prob = add_linear_constraints_min(result=w6,
-                                          value1=(upbound_step6-lowbound_step6)*w6_active,
-                                          value2=total_weight-lowbound_step6 + M * (1 - w6_active),
-                                          auxiliary_var=aux6,
-                                          prob=prob)
-        # Seventh step
-        prob = add_linear_constraints_var_greater_than_value(result=w7_active,
-                                                             var=total_weight,
-                                                             value=lowbound_step7,
-                                                             prob=prob)
-        prob = add_linear_constraints_min(result=w7,
-                                          value1=(upbound_step7-lowbound_step7)*w7_active,
-                                          value2=total_weight-lowbound_step7 + M * (1 - w7_active),
-                                          auxiliary_var=aux7,
-                                          prob=prob)
-        # Eighth step
-        prob = add_linear_constraints_var_greater_than_value(result=w8_active,
-                                                             var=total_weight,
-                                                             value=lowbound_step8,
-                                                             prob=prob)
-        prob = add_linear_constraints_min(result=w8,
-                                          value1=(upbound_step8-lowbound_step8)*w8_active,
-                                          value2=total_weight-lowbound_step8 + M * (1 - w8_active),
-                                          auxiliary_var=aux8,
-                                          prob=prob)
 
-        return fixed_rate*w1_active + rate_step1*(w1_active-w2_active) \
-            + rate_step2*(w2_active-w3_active) + rate_step3*(w3_active-w4_active) \
-            + rate_step4*(w4_active-w5_active) \
+        prob += w1_active+w2_active+w3_active+w4_active+w5_active+w6_active+w7_active+w8_active <= 1
+        # First step
+        prob = add_linear_constraints_var_greater_than_value(result=w1_lb, var=total_weight,
+                                                             value=lowbound_step1, prob=prob)
+        prob = add_linear_constraints_var_less_than_value(result=w1_ub, var=total_weight,
+                                                          value=upbound_step1, prob=prob)
+        prob = add_linear_contraints_multiply_binary_vars(result=w1_active, var1=w1_lb,
+                                                          var2=w1_ub, prob=prob)
+        prob = add_linear_constraints_prod_bin_cont(result=w1, bin_var=w1_active,
+                                                    cont_var=total_weight, prob=prob)
+        # Second step
+        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w2_lb, var=total_weight,
+                                                                      value=lowbound_step2, prob=prob)
+        prob = add_linear_constraints_var_less_than_value(result=w2_ub, var=total_weight,
+                                                          value=upbound_step2, prob=prob)
+        prob = add_linear_contraints_multiply_binary_vars(result=w2_active, var1=w2_lb,
+                                                          var2=w2_ub, prob=prob)
+        prob = add_linear_constraints_prod_bin_cont(result=w2, bin_var=w2_active,
+                                                    cont_var=total_weight, prob=prob)
+        # Third step
+        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w3_lb, var=total_weight,
+                                                                      value=lowbound_step3, prob=prob)
+        prob = add_linear_constraints_var_less_than_value(result=w3_ub, var=total_weight,
+                                                          value=upbound_step3, prob=prob)
+        prob = add_linear_contraints_multiply_binary_vars(result=w3_active, var1=w3_lb,
+                                                          var2=w3_ub, prob=prob)
+        prob = add_linear_constraints_prod_bin_cont(result=w3, bin_var=w3_active,
+                                                    cont_var=total_weight, prob=prob)
+        # Fourth step
+        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w4_lb, var=total_weight,
+                                                                      value=lowbound_step4, prob=prob)
+        prob = add_linear_constraints_var_less_than_value(result=w4_ub, var=total_weight,
+                                                          value=upbound_step4, prob=prob)
+        prob = add_linear_contraints_multiply_binary_vars(result=w4_active, var1=w4_lb,
+                                                          var2=w4_ub, prob=prob)
+        prob = add_linear_constraints_prod_bin_cont(result=w4, bin_var=w4_active,
+                                                    cont_var=total_weight, prob=prob)
+        # Fifth step
+        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w5_lb, var=total_weight,
+                                                                      value=lowbound_step5, prob=prob)
+        prob = add_linear_constraints_var_less_than_value(result=w5_ub, var=total_weight,
+                                                          value=upbound_step5, prob=prob)
+        prob = add_linear_contraints_multiply_binary_vars(result=w5_active, var1=w5_lb,
+                                                          var2=w5_ub, prob=prob)
+        prob = add_linear_constraints_prod_bin_cont(result=w5, bin_var=w5_active,
+                                                    cont_var=total_weight, prob=prob)
+        # Sixth step
+        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w6_lb, var=total_weight,
+                                                                      value=lowbound_step6, prob=prob)
+        prob = add_linear_constraints_var_less_than_value(result=w6_ub, var=total_weight,
+                                                          value=upbound_step6, prob=prob)
+        prob = add_linear_contraints_multiply_binary_vars(result=w6_active, var1=w6_lb,
+                                                          var2=w6_ub, prob=prob)
+        prob = add_linear_constraints_prod_bin_cont(result=w6, bin_var=w6_active,
+                                                    cont_var=total_weight, prob=prob)
+        # Seventh step
+        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w7_lb, var=total_weight,
+                                                                      value=lowbound_step7, prob=prob)
+        prob = add_linear_constraints_var_less_than_value(result=w7_ub, var=total_weight,
+                                                          value=upbound_step7, prob=prob)
+        prob = add_linear_contraints_multiply_binary_vars(result=w7_active, var1=w7_lb,
+                                                          var2=w7_ub, prob=prob)
+        prob = add_linear_constraints_prod_bin_cont(result=w7, bin_var=w7_active,
+                                                    cont_var=total_weight, prob=prob)
+        # Eighth step
+        prob = add_linear_constraints_var_greater_than_or_equal_value(result=w8_lb, var=total_weight,
+                                                                      value=lowbound_step8, prob=prob)
+        prob = add_linear_constraints_var_less_than_value(result=w8_ub, var=total_weight,
+                                                          value=upbound_step8, prob=prob)
+        prob = add_linear_contraints_multiply_binary_vars(result=w8_active, var1=w8_lb,
+                                                          var2=w8_ub, prob=prob)
+        prob = add_linear_constraints_prod_bin_cont(result=w8, bin_var=w8_active,
+                                                    cont_var=total_weight, prob=prob)
+
+        return fixed_rate*(w1_active+w2_active+w3_active+w4_active+w5_active+w6_active+w7_active+w8_active) \
+            + rate_step1*w1_active + rate_step2*w2_active + rate_step3*w3_active + rate_step4*w4_active \
             + rate_step5*w5 + rate_step6*w6 + rate_step7*w7 + rate_step8*w8
 
 def package_cost_miami_box(total_weight, promo=False, sum=True):

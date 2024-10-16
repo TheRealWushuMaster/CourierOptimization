@@ -12,9 +12,9 @@ from purchased_items import *
 # MILP OPTIMIZATION
 # ==================
 optimal_solution = milp_optimization(courier=selected_courier,
-                                      items=purchased_items,
-                                      max_packages=None,
-                                      max_exemptions=fee_exemptions)
+                                     items=purchased_items,
+                                     max_packages=None,
+                                     max_exemptions=fee_exemptions)
 
 # DISPLAY THE RESULTS
 # ===================

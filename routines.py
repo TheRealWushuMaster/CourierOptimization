@@ -103,11 +103,11 @@ def add_linear_constraints_var_less_than_value(result, var, value, prob):
     return prob
 
 def add_linear_constraints_var_greater_than_or_equal_value(result, var, value, prob):
-    prob += var - MIN_TOLERANCE - value <= M * result
+    prob += var + MIN_TOLERANCE - value <= M * result
     return prob
 
 def add_linear_constraints_var_less_than_or_equal_value(result, var, value, prob):
-    prob += value - var + MIN_TOLERANCE <= M * result
+    prob += value - var - MIN_TOLERANCE <= M * result
     return prob
 
 def add_linear_constraints_ceil(result, var, prob):
@@ -120,4 +120,11 @@ def add_linear_constraints_floor(result, var, prob):
     # result = floor(var)
     prob += result >= var - 0.999
     prob += result <= var
+    return prob
+
+def add_linear_contraints_multiply_binary_vars(result, var1, var2, prob):
+    # result = var1 * var2
+    prob += result <= var1
+    prob += result <= var2
+    prob += result >= var1 + var2 - 1
     return prob
