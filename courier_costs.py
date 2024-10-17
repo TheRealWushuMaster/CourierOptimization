@@ -70,7 +70,7 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
                     (20.0, 40.0, 15.9)]
     num_steps = len(weight_steps)
     weight_threshold = 1
-    if isinstance(total_weight, (int, float)):  # Float input (immediate calculation)
+    if isinstance(total_weight, (int, float)):
         if total_weight == 0:
             return return_result(fixed_rate=0,
                                  variable_rate=0,
@@ -116,29 +116,70 @@ def package_cost_urubox(total_weight, prob=None, promo=False, sum=True):
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
         return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
 
-def package_cost_miami_box(total_weight, promo=False, sum=True):
+def package_cost_miami_box(total_weight, prob=None, promo=False, sum=True):
     fixed_rate = 6
-    if promo:
-        return return_result(fixed_rate=2.5,
-                             variable_rate=round(total_weight*9.9, 2),
-                             sum=sum)
-    if total_weight >= 30:
-        return return_result(fixed_rate=0,
-                             variable_rate=0,
-                             sum=sum)
-    elif total_weight < 0.4:
-        return return_result(fixed_rate=fixed_rate,
-                             variable_rate=10,
-                             sum=sum)
     cost_per_100_gr = 2.59
-    variable_rate = ceil(total_weight / 0.1) * cost_per_100_gr
-    if total_weight >= 20:
-        variable_rate *= 0.8
-    elif total_weight >= 10:
-        variable_rate *= 0.9
-    return return_result(fixed_rate=fixed_rate,
-                         variable_rate=round(variable_rate, 2),
-                         sum=sum)
+    fixed_step_threshold = 1
+    weight_steps = [( 0.0,  0.4, 10.0),
+                    ( 0.4, 10.0,  1.0),
+                    (10.0, 20.0,  0.9),
+                    (20.0, 30.0,  0.8)]
+    num_steps = len(weight_steps)
+    if isinstance(total_weight, (int, float)):
+        if promo:
+            return return_result(fixed_rate=2.5,
+                                variable_rate=round(total_weight*9.9, 2),
+                                sum=sum)
+        if total_weight >= 30:
+            return return_result(fixed_rate=0,
+                                variable_rate=0,
+                                sum=sum)
+        elif total_weight < 0.4:
+            return return_result(fixed_rate=fixed_rate,
+                                variable_rate=weight_steps[0][2],
+                                sum=sum)
+        variable_rate = ceil(total_weight / 0.1) * cost_per_100_gr
+        if total_weight >= 20:
+            variable_rate *= 0.8
+        elif total_weight >= 10:
+            variable_rate *= 0.9
+        return return_result(fixed_rate=fixed_rate,
+                            variable_rate=round(variable_rate, 2),
+                            sum=sum)
+    elif isinstance(total_weight, pulp.LpVariable):
+        rates = [step[2] for step in weight_steps]
+        lowbounds = [step[0] for step in weight_steps]
+        upbounds = [step[1] for step in weight_steps]
+        w_vars = []
+        w_lb_vars = []
+        w_ub_vars = []
+        w_active_vars = []
+        w_ceil_vars = []
+        for i in range(num_steps):
+            w_var = pulp.LpVariable(f'w{i+1}_{total_weight}', lowBound=0)
+            w_lb_var = pulp.LpVariable(f'w{i+1}_{total_weight}_lb', cat='Binary')
+            w_ub_var = pulp.LpVariable(f'w{i+1}_{total_weight}_ub', cat='Binary')
+            w_active_var = pulp.LpVariable(f'w{i+1}_{total_weight}_active', cat='Binary')
+            w_ceil_var = pulp.LpVariable(f'w{i+1}_{total_weight}_ceil', lowBound=0)
+            w_vars.append(w_var)
+            w_lb_vars.append(w_lb_var)
+            w_ub_vars.append(w_ub_var)
+            w_active_vars.append(w_active_var)
+            w_ceil_vars.append(w_ceil_var)
+        prob += pulp.lpSum(w_active_vars) <= 1
+        for i in range(num_steps):
+            prob = add_linear_constraints_ceil(w_ceil_vars[i], var=total_weight, prob=prob)
+            prob = add_linear_constraints_var_within_limits(result=w_active_vars[i], var=w_ceil_vars[i],
+                                                            var_low=w_lb_vars[i], var_high=w_ub_vars[i],
+                                                            limit_low=lowbounds[i],
+                                                            limit_high=upbounds[i], prob=prob,
+                                                            avoid_low_limit=True if i==0 else False)
+            prob = add_linear_constraints_prod_bin_cont(result=w_vars[i], bin_var=w_active_vars[i],
+                                                        cont_var=w_ceil_vars[i], prob=prob)
+        fixed_rate_sum = fixed_rate * pulp.lpSum(w_active_vars)
+        fixed_step_rate_sum = rates[0] * w_active_vars[0] #pulp.lpSum([rates[i] * w_active_vars[i] for i in range(fixed_step_threshold)])
+        linear_rate_sum = pulp.lpSum([10*cost_per_100_gr*rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
+        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
 
 def package_cost_aerobox(total_weight, promo=False, sum=True):
     if promo:

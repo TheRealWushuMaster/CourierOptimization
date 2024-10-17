@@ -96,7 +96,7 @@ def brute_force_optimization(items,#: List[Item],
                           import_fee_exemption=import_fee_exemption)
         optimal_solution.add_package(package)
     print(f"** Objective function optimal value = {optimal_solution.total_cost}")
-    return optimal_solution, valid_solutions
+    return optimal_solution
 
 def print_results(optimal_solution, all_solutions, courier_service):
     print(f"Optimization using courier {courier_service}")

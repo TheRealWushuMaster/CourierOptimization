@@ -1,21 +1,27 @@
 from brute_force_optimizer import *
 from milp_optimizer import *
 from courier_services import *
-from purchased_items import *
+from purchased_items import purchased_items
 
-# BRUTE FORCE OPTIMIZATION
+# PARAMETERS
+# ==========
+selected_courier = "Miami-Box"  # Name of the courier used
+fee_exemptions = 2              # Maximum import fee exemptions to use
+
+# OPTIMIZATION STRATEGY
+# =====================
+optimization_strategy = 1   # 0 = brute force, 1 = MILP
+
+if optimization_strategy==0:
+    method = brute_force_optimization
+elif optimization_strategy==1:
+    method = milp_optimization
+
+# OPTIMIZE
+# ========
+optimal_solution = method(items=purchased_items, courier=selected_courier,
+                          max_exemptions=fee_exemptions)
+
+# DISPLAY/SAVE THE RESULTS
 # ========================
-#optimal_solution, all_solutions = brute_force_optimization(items=purchased_items,
-#                                                           courier=selected_courier,
-#                                                           max_exemptions=fee_exemptions)
-
-# MILP OPTIMIZATION
-# ==================
-optimal_solution = milp_optimization(courier=selected_courier,
-                                     items=purchased_items,
-                                     max_packages=None,
-                                     max_exemptions=fee_exemptions)
-
-# DISPLAY THE RESULTS
-# ===================
 display_solution(optimal_solution, filename='solution_details.log')
