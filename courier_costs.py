@@ -154,21 +154,25 @@ def package_cost_miami_box(total_weight, prob=None, promo=False, sum=True):
         w_lb_vars = []
         w_ub_vars = []
         w_active_vars = []
+        w_ceil_int_vars = []
         w_ceil_vars = []
         for i in range(num_steps):
             w_var = pulp.LpVariable(f'w{i+1}_{total_weight}', lowBound=0)
             w_lb_var = pulp.LpVariable(f'w{i+1}_{total_weight}_lb', cat='Binary')
             w_ub_var = pulp.LpVariable(f'w{i+1}_{total_weight}_ub', cat='Binary')
             w_active_var = pulp.LpVariable(f'w{i+1}_{total_weight}_active', cat='Binary')
+            w_ceil_int_var = pulp.LpVariable(f'w{i+1}_{total_weight}_ceil_int', lowBound=0, cat='Integer')
             w_ceil_var = pulp.LpVariable(f'w{i+1}_{total_weight}_ceil', lowBound=0)
             w_vars.append(w_var)
             w_lb_vars.append(w_lb_var)
             w_ub_vars.append(w_ub_var)
             w_active_vars.append(w_active_var)
+            w_ceil_int_vars.append(w_ceil_int_var)
             w_ceil_vars.append(w_ceil_var)
         prob += pulp.lpSum(w_active_vars) <= 1
         for i in range(num_steps):
-            prob = add_linear_constraints_ceil(w_ceil_vars[i], var=total_weight, prob=prob)
+            prob = add_linear_constraints_ceil(result=w_ceil_vars[i], var=total_weight,
+                                               int_var=w_ceil_int_vars[i], prob=prob, precision=0.1)
             prob = add_linear_constraints_var_within_limits(result=w_active_vars[i], var=w_ceil_vars[i],
                                                             var_low=w_lb_vars[i], var_high=w_ub_vars[i],
                                                             limit_low=lowbounds[i],
