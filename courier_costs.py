@@ -173,7 +173,7 @@ def package_cost_miami_box(total_weight, prob=None, promo=False, sum=True):
         for i in range(num_steps):
             prob = add_linear_constraints_ceil(result=w_ceil_vars[i], var=total_weight,
                                                int_var=w_ceil_int_vars[i], prob=prob, precision=0.1)
-            prob = add_linear_constraints_var_within_limits(result=w_active_vars[i], var=w_ceil_vars[i],
+            prob = add_linear_constraints_var_within_limits(result=w_active_vars[i], var=total_weight,
                                                             var_low=w_lb_vars[i], var_high=w_ub_vars[i],
                                                             limit_low=lowbounds[i],
                                                             limit_high=upbounds[i], prob=prob,
