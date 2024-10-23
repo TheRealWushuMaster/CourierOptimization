@@ -1,4 +1,5 @@
 from settings import M, MIN_TOLERANCE
+import pulp
 
 # CLASSES
 # =======
@@ -73,6 +74,52 @@ def display_solution(solution, filename=None):
 
 # ADD RESTRAINTS FOR COMMON CONDITIONS
 # ====================================
+def configure_restrictions(weight_steps, total_weight, prob, ceil=False):
+    rates = [step[2] for step in weight_steps]
+    lowbounds = [step[0] for step in weight_steps]
+    upbounds = [step[1] for step in weight_steps]
+    num_steps = len(weight_steps)
+    w_vars = []
+    w_lb_vars = []
+    w_ub_vars = []
+    w_active_vars = []
+    w_ceil_int_vars = []
+    if ceil:
+        w_ceil_vars = []
+    for i in range(num_steps):
+        w_var = pulp.LpVariable(f'w{i+1}_{total_weight}', lowBound=0)
+        w_lb_var = pulp.LpVariable(
+            f'w{i+1}_{total_weight}_lb', cat='Binary')
+        w_ub_var = pulp.LpVariable(
+            f'w{i+1}_{total_weight}_ub', cat='Binary')
+        w_active_var = pulp.LpVariable(
+            f'w{i+1}_{total_weight}_active', cat='Binary')
+        w_vars.append(w_var)
+        w_lb_vars.append(w_lb_var)
+        w_ub_vars.append(w_ub_var)
+        w_active_vars.append(w_active_var)
+        if ceil:
+            w_ceil_int_var = pulp.LpVariable(f'w{i+1}_{total_weight}_ceil_int', lowBound=0, cat='Integer')
+            w_ceil_var = pulp.LpVariable(f'w{i+1}_{total_weight}_ceil', lowBound=0)
+            w_ceil_int_vars.append(w_ceil_int_var)
+            w_ceil_vars.append(w_ceil_var)
+    prob += pulp.lpSum(w_active_vars) <= 1
+    for i in range(num_steps):
+        if ceil:
+            prob = add_linear_constraints_ceil(result=w_ceil_vars[i], var=total_weight,
+                                               int_var=w_ceil_int_vars[i], prob=prob, precision=0.1)
+            prob = add_linear_constraints_prod_bin_cont(result=w_vars[i], bin_var=w_active_vars[i],
+                                                        cont_var=w_ceil_vars[i], prob=prob)
+        else:
+            prob = add_linear_constraints_prod_bin_cont(result=w_vars[i], bin_var=w_active_vars[i],
+                                                        cont_var=total_weight, prob=prob)
+        prob = add_linear_constraints_var_within_limits(result=w_active_vars[i], var=total_weight,
+                                                        var_low=w_lb_vars[i], var_high=w_ub_vars[i],
+                                                        limit_low=lowbounds[i],
+                                                        limit_high=upbounds[i], prob=prob,
+                                                        avoid_low_limit=True if i == 0 else False)
+    return prob, rates, w_active_vars, w_vars
+
 def add_linear_constraints_var_within_limits(result, var, var_low, var_high,
                                              limit_low, limit_high, prob,
                                              avoid_low_limit=False):
