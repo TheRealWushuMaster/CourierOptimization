@@ -244,3 +244,9 @@ def package_cost_exur(total_weight, promo=False, sum=True):
     else:
         variable_cost = round(ceil(weight_lbs - 1) * cost_rest_lbs, 2)
         return 0, cost_first_lb + variable_cost
+
+def package_cost_grinbox(total_weight, promo=False, sum=True):
+    pass
+
+def package_cost_melotraigo(total_weight, promo=False, sum=True):
+    pass
