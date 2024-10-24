@@ -250,3 +250,6 @@ def package_cost_grinbox(total_weight, promo=False, sum=True):
 
 def package_cost_melotraigo(total_weight, promo=False, sum=True):
     pass
+
+def package_cost_buybox(total_weight, promo=False, sum=True):
+    pass
