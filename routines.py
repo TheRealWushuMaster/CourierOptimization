@@ -1,5 +1,6 @@
-from settings import M, MIN_TOLERANCE
+from settings import *
 import pulp
+from math import ceil
 
 # CLASSES
 # =======
@@ -32,45 +33,79 @@ class PackageSolution:
         self.total_transport_cost += package.transport_cost
         self.total_import_fee += package.import_fee
         self.total_cost += package.transport_cost + package.import_fee
+    
+    def __str__(self):
+        result  = f"Optimal solution found for courier {self.courier}:\n"
+        result += '\n'
+        for i, package in enumerate(self.packages):
+            result += f"* Package {i+1}:\n"
+            result += "  ==========\n"
+            result += '\n'
+            result += "  - Items included:\n"
+            for n, item in enumerate(package.items):
+                result += f"      {n+1}. {item[0]} (USD {item[1]}, {item[2]} kg)\n"
+            result += '\n'
+            result += "  - Package information:\n"
+            result += f"    Total price:     USD {package.total_price:.2f}\n"
+            result += f"    Total weight:        {package.total_weight:.2f} kg\n"
+            result += '\n'
+            result += "  - Costs information:\n"
+            result += f"    Transport cost:  USD {package.transport_cost:.2f}\n"
+            result += f"    Import fee:      USD {package.import_fee:.2f}"+(" (fee exempted)" if package.import_fee_exempted else "")+'\n'
+            result += '\n'
+            result += f"    Total cost:      USD {package.total_package_cost:.2f}\n"
+            result += '\n'
+        result += "---\n"
+        result += "Totals:\n"
+        result += f"Total price:           USD {self.total_price:.2f}\n"
+        result += f"Total weight:              {self.total_weight:.2f} kg\n"
+        result += '\n'
+        result += f"Total transport cost:  USD {self.total_transport_cost:.2f}\n"
+        result += f"Total import fee:      USD {self.total_import_fee:.2f}\n"
+        result += '\n'
+        result += f"Total cost:            USD {self.total_cost:.2f}\n"
+        if self.solutions > 0:
+            result += '\n'
+            result += f"Solutions analyzed:    {self.solutions}"
+        return result
+    
+    def show(self):
+        print(self)
+    
+    def save_to_file(self, filename='solution_details.log'):
+        try:
+            with open(filename, 'w') as file:
+                print(self, file=file)
+            print(f"File '{filename}' saved successfully.")  # Success message
+        except IOError as e:
+            print(f"Error saving file '{filename}': {e}")
+
+class PackageCost:
+    def __init__(self, handling, freight):
+        self.handling = round(handling, COST_DECIMALS)
+        self.freight = round(freight, COST_DECIMALS)
+        self.subtotal = self.handling + self.freight
+        self.tax = round(TAX_ON_FREIGHT * freight, COST_DECIMALS)
+        self.TFSPU = round(self.freight * TFSPU_RATE, COST_DECIMALS)
+        self.total = round(self.subtotal + self.tax + self.TSPU, COST_DECIMALS)
+    
+    def __str__(self):
+        output  = f'- Handling: {self.handling}\n'
+        output += f'- Freight:  {self.freight}\n'
+        output += f'- Subtotal: {self.subtotal}\n'
+        output += '  =========\n'
+        output += f'- Tax:      {self.tax}\n'
+        output += f'- TFSPU:     {self.TSPU}\n'
+        output += f'- Total:    {self.total}'
+        return output 
+
+    def show(self):
+        print(self)
 
 # METHODS
 # =======
-def display_solution(solution, filename=None):
-    if filename!=None:
-        print(f"Saving solution details to {filename}")
-        filename = open(filename, "w")
-    print(f"Optimal solution found for courier {solution.courier}:", file=filename)
-    print("", file=filename)
-    for i, package in enumerate(solution.packages):
-        print(f"* Package {i+1}:", file=filename)
-        print("  ==========", file=filename)
-        print("", file=filename)
-        print("  - Items included:", file=filename)
-        for n, item in enumerate(package.items):
-            print(f"      {n+1}. {item[0]} (USD {item[1]}, {item[2]} kg)", file=filename)
-        print("", file=filename)
-        print("  - Package information:", file=filename)
-        print(f"    Total price:     USD {package.total_price:.2f}", file=filename)
-        print(f"    Total weight:        {package.total_weight:.2f} kg", file=filename)
-        print("", file=filename)
-        print("  - Costs information:", file=filename)
-        print(f"    Transport cost:  USD {package.transport_cost:.2f}", file=filename)
-        print(f"    Import fee:      USD {package.import_fee:.2f}"+(" (fee exempted)" if package.import_fee_exempted else ""), file=filename)
-        print("", file=filename)
-        print(f"    Total cost:      USD {package.total_package_cost:.2f}", file=filename)
-        print("", file=filename)
-    print("---", file=filename)
-    print("Totals:", file=filename)
-    print(f"Total price:           USD {solution.total_price:.2f}", file=filename)
-    print(f"Total weight:              {solution.total_weight:.2f} kg", file=filename)
-    print("", file=filename)
-    print(f"Total transport cost:  USD {solution.total_transport_cost:.2f}", file=filename)
-    print(f"Total import fee:      USD {solution.total_import_fee:.2f}", file=filename)
-    print("", file=filename)
-    print(f"Total cost:            USD {solution.total_cost:.2f}", file=filename)
-    if solution.solutions > 0:
-        print("", file=filename)
-        print(f"Solutions analyzed:    {solution.solutions}", file=filename)
+def ceil_in_increments(number, increments):
+    return ceil(number / increments) * increments
 
 # ADD RESTRAINTS FOR COMMON CONDITIONS
 # ====================================

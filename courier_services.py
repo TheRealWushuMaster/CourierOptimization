@@ -7,6 +7,5 @@ couriers = {"Urubox": {"cost_function": package_cost_urubox},
             "Punto Mío": {"cost_function": package_cost_punto_mio},
             "Uruguay Cargo": {"cost_function": package_cost_uruguay_cargo},
             "USX": {"cost_function": package_cost_usx},
-            "Exur": {"cost_function": package_cost_exur},
-            "Test": {"cost_function": package_cost_test}
+            "Exur": {"cost_function": package_cost_exur}
             }

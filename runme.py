@@ -19,9 +19,11 @@ elif optimization_strategy==1:
 
 # OPTIMIZE
 # ========
-optimal_solution = method(items=purchased_items, courier=selected_courier,
+optimal_solution = method(items=purchased_items,
+                          courier=selected_courier,
                           max_exemptions=fee_exemptions)
 
 # DISPLAY/SAVE THE RESULTS
 # ========================
-display_solution(optimal_solution, filename='solution_details.log')
+optimal_solution.show()
+optimal_solution.save_to_file()
