@@ -5,7 +5,7 @@ from purchased_items import purchased_items
 
 # PARAMETERS
 # ==========
-selected_courier = "Miami-Box"  # Name of the courier used
+selected_courier = "Urubox"  # Name of the courier used
 fee_exemptions = 2              # Maximum import fee exemptions to use
 
 # OPTIMIZATION STRATEGY

@@ -3,8 +3,8 @@ import pulp
 from routines import *
 
 def cost_result(fixed_rate, variable_rate, total=True):
-    package_cost = PackageCost(handling=fixed_rate,
-                               freight=variable_rate)
+    package_cost = TransportCost(handling=fixed_rate,
+                                 freight=variable_rate)
     if total:
         return package_cost.total
     else:
@@ -18,9 +18,11 @@ def return_rate(weight_steps, total_weight):
             else:
                 return total_weight * rate
 
+def return_fixed_step_threshold(weight_steps):
+    return sum(1 for step in weight_steps if step[3] == 'f')
+
 def package_cost_urubox(total_weight, prob=None, book_cd=False, total=True):
-    handling = 5
-    fixed_step_threshold = 4
+    handling_rate = 5
     weight_steps = [( 0.0,  0.2, 10.9, 'f'),
                     ( 0.2,  0.5, 15.9, 'f'),
                     ( 0.5,  0.7, 18.9, 'f'),
@@ -40,15 +42,16 @@ def package_cost_urubox(total_weight, prob=None, book_cd=False, total=True):
         else:
             weight_rate = return_rate(weight_steps=weight_steps,
                                       total_weight=total_weight)
-        return cost_result(fixed_rate=handling,
+        return cost_result(fixed_rate=handling_rate,
                            variable_rate=weight_rate,
                            total=total)
     elif isinstance(total_weight, pulp.LpVariable):
+        fixed_step_threshold = return_fixed_step_threshold(weight_steps=weight_steps)
         prob, rates, w_active_vars, w_vars = configure_restrictions(weight_steps=weight_steps,
                                                                     total_weight=total_weight,
                                                                     prob=prob,
                                                                     ceil=False)
-        fixed_rate_sum = handling * pulp.lpSum(w_active_vars)
+        fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         fixed_step_rate_sum = pulp.lpSum([rates[i] * w_active_vars[i] for i in range(fixed_step_threshold)])
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
         return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
@@ -76,14 +79,14 @@ def package_cost_miami_box(total_weight, prob=None, book_cd=False, total=True):
                            variable_rate=weight_rate,
                            total=total)
     elif isinstance(total_weight, pulp.LpVariable):
-        fixed_rate = 6
+        handling_rate = 6
         cost_per_100_gr = 2.59
-        fixed_step_threshold = 1
+        fixed_step_threshold = return_fixed_step_threshold(weight_steps=weight_steps)
         prob, rates, w_active_vars, w_vars = configure_restrictions(weight_steps=weight_steps,
                                                                     total_weight=total_weight,
                                                                     prob=prob,
                                                                     ceil=True)
-        fixed_rate_sum = fixed_rate * pulp.lpSum(w_active_vars)
+        fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         fixed_step_rate_sum = rates[0] * w_active_vars[0] #pulp.lpSum([rates[i] * w_active_vars[i] for i in range(fixed_step_threshold)])
         linear_rate_sum = pulp.lpSum([10*cost_per_100_gr*rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
         return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum

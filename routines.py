@@ -13,14 +13,15 @@ class Package:
         self.transport_cost = transport_cost
         self.import_fee = import_fee
         self.import_fee_exempted = import_fee_exemption  # Boolean: whether the package is exempted or not
-        self.total_package_cost = transport_cost + import_fee
+        self.total_package_cost = transport_cost.total + import_fee
 
 class PackageSolution:
     def __init__(self, courier, solutions=0):
         self.packages = []              # List of Package objects
         self.total_weight = 0           # Total weight of all packages
         self.total_price = 0            # Total price of all packages
-        self.total_transport_cost = 0   # Total transport cost of all packages
+        self.total_transport_cost = TransportCost.zero()
+                                        # Total transport cost of all packages
         self.total_import_fee = 0       # Total import fees of all packages
         self.total_cost = 0             # Total cost including transport and import fees
         self.courier = courier
@@ -32,41 +33,53 @@ class PackageSolution:
         self.total_price += package.total_price
         self.total_transport_cost += package.transport_cost
         self.total_import_fee += package.import_fee
-        self.total_cost += package.transport_cost + package.import_fee
+        self.total_cost += package.transport_cost.total + package.import_fee
     
     def __str__(self):
         result  = f"Optimal solution found for courier {self.courier}:\n"
         result += '\n'
         for i, package in enumerate(self.packages):
             result += f"* Package {i+1}:\n"
-            result += "  ==========\n"
+            result +=  "  ==========\n"
             result += '\n'
-            result += "  - Items included:\n"
+            result +=  "  - Items included:\n"
             for n, item in enumerate(package.items):
                 result += f"      {n+1}. {item[0]} (USD {item[1]}, {item[2]} kg)\n"
             result += '\n'
-            result += "  - Package information:\n"
+            result +=  "  - Package information:\n"
             result += f"    Total price:     USD {package.total_price:.2f}\n"
             result += f"    Total weight:        {package.total_weight:.2f} kg\n"
             result += '\n'
-            result += "  - Costs information:\n"
-            result += f"    Transport cost:  USD {package.transport_cost:.2f}\n"
+            result +=  "  - Costs information:\n"
+            result +=  "    Transport costs:\n"
+            result += f"      * Handling:  USD {package.transport_cost.handling:.2f}\n"
+            result += f"      * Freight:   USD {package.transport_cost.freight:.2f}\n"
+            result += f"      * Subtotal:  USD {package.transport_cost.subtotal:.2f}\n"
+            result += f"      * Tax:       USD {package.transport_cost.tax:.2f}\n"
+            result += f"      * TFSPU:     USD {package.transport_cost.TFSPU:.2f}\n"
+            result += f"      * Total:     USD {package.transport_cost.total:.2f}\n"
             result += f"    Import fee:      USD {package.import_fee:.2f}"+(" (fee exempted)" if package.import_fee_exempted else "")+'\n'
             result += '\n'
             result += f"    Total cost:      USD {package.total_package_cost:.2f}\n"
             result += '\n'
         result += "---\n"
         result += "Totals:\n"
-        result += f"Total price:           USD {self.total_price:.2f}\n"
-        result += f"Total weight:              {self.total_weight:.2f} kg\n"
+        result += f"Total price:         USD {self.total_price:.2f}\n"
+        result += f"Total weight:            {self.total_weight:.2f} kg\n"
         result += '\n'
-        result += f"Total transport cost:  USD {self.total_transport_cost:.2f}\n"
-        result += f"Total import fee:      USD {self.total_import_fee:.2f}\n"
+        result +=  "Total transport costs:\n"
+        result += f"  * Handling:  USD {self.total_transport_cost.handling:.2f}\n"
+        result += f"  * Freight:   USD {self.total_transport_cost.freight:.2f}\n"
+        result += f"  * Subtotal:  USD {self.total_transport_cost.subtotal:.2f}\n"
+        result += f"  * Tax:       USD {self.total_transport_cost.tax:.2f}\n"
+        result += f"  * TFSPU:     USD {self.total_transport_cost.TFSPU:.2f}\n"
+        result += f"  * Total:     USD {self.total_transport_cost.total:.2f}\n"
+        result += f"Total import fee:    USD {self.total_import_fee:.2f}\n"
         result += '\n'
-        result += f"Total cost:            USD {self.total_cost:.2f}\n"
+        result += f"Total cost:          USD {self.total_cost:.2f}\n"
         if self.solutions > 0:
             result += '\n'
-            result += f"Solutions analyzed:    {self.solutions}"
+            result += f"Solutions analyzed:  {self.solutions}"
         return result
     
     def show(self):
@@ -76,27 +89,43 @@ class PackageSolution:
         try:
             with open(filename, 'w') as file:
                 print(self, file=file)
-            print(f"File '{filename}' saved successfully.")  # Success message
+            print(f"File '{filename}' saved successfully.")
         except IOError as e:
             print(f"Error saving file '{filename}': {e}")
 
-class PackageCost:
+class TransportCost:
     def __init__(self, handling, freight):
         self.handling = round(handling, COST_DECIMALS)
         self.freight = round(freight, COST_DECIMALS)
         self.subtotal = self.handling + self.freight
         self.tax = round(TAX_ON_FREIGHT * freight, COST_DECIMALS)
         self.TFSPU = round(self.freight * TFSPU_RATE, COST_DECIMALS)
-        self.total = round(self.subtotal + self.tax + self.TSPU, COST_DECIMALS)
+        self.total = round(self.subtotal + self.tax + self.TFSPU, COST_DECIMALS)
     
+    @classmethod
+    def zero(cls):
+        return cls(handling=0, freight=0)
+    
+    def __add__(self, other):
+        if not isinstance(other, TransportCost):
+            raise TypeError(f"Unsupported operand type(s) for +: '{type(self).__name__}' and '{type(other).__name__}'")
+        addition = object.__new__(TransportCost)
+        addition.handling = round(self.handling + other.handling, COST_DECIMALS)
+        addition.freight = round(self.freight + other.freight, COST_DECIMALS)
+        addition.subtotal = round(self.subtotal + other.subtotal, COST_DECIMALS)
+        addition.tax = round(self.tax + other.tax, COST_DECIMALS)
+        addition.TFSPU = round(self.TFSPU + other.TFSPU, COST_DECIMALS)
+        addition.total = round(self.total + other.total, COST_DECIMALS)
+        return addition
+
     def __str__(self):
-        output  = f'- Handling: {self.handling}\n'
-        output += f'- Freight:  {self.freight}\n'
-        output += f'- Subtotal: {self.subtotal}\n'
-        output += '  =========\n'
-        output += f'- Tax:      {self.tax}\n'
-        output += f'- TFSPU:     {self.TSPU}\n'
-        output += f'- Total:    {self.total}'
+        output  = f'- Handling: USD {self.handling}\n'
+        output += f'- Freight:  USD {self.freight}\n'
+        output += f'- Subtotal: USD {self.subtotal}\n'
+        output +=  '  =========\n'
+        output += f'- Tax:      USD {self.tax}\n'
+        output += f'- TFSPU:    USD {self.TSPU}\n'
+        output += f'- Total:    USD {self.total}'
         return output 
 
     def show(self):
