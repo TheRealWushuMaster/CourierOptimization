@@ -1,4 +1,4 @@
-from courier_costs import *
+from app.utils.courier_costs import *
 
 couriers = {"Urubox": {"cost_function": package_cost_urubox},
             "Miami-Box": {"cost_function": package_cost_miami_box},

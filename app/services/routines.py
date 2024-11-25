@@ -1,4 +1,4 @@
-from settings import *
+from app.core.config import *
 import pulp
 from math import ceil
 

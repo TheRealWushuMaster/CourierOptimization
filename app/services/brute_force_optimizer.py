@@ -1,8 +1,8 @@
 from typing import List, Tuple, Callable
 from itertools import combinations
-from settings import *
-from routines import *
-from courier_services import *
+from app.core.config import *
+from app.services.routines import *
+from app.utils.courier_services import *
 
 Item = Tuple[str, float, float]
 Pack = List[Item]

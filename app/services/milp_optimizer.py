@@ -1,7 +1,7 @@
 import pulp
-from settings import *
-from routines import *
-from courier_services import *
+from app.core.config import *
+from app.services.routines import *
+from app.utils.courier_services import *
 
 def milp_optimization(courier, items, max_packages=None,
                        max_exemptions=MAX_EXEMPTIONS_PER_YEAR):

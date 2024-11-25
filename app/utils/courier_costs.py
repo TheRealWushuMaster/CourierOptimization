@@ -1,6 +1,6 @@
 from math import ceil
 import pulp
-from routines import *
+from app.services.routines import *
 
 def cost_result(fixed_rate, variable_rate, total=True):
     package_cost = TransportCost(handling=fixed_rate,
@@ -94,16 +94,16 @@ def package_cost_miami_box(total_weight, prob=None, book_cd=False, total=True):
         return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
 
 def package_cost_aerobox(total_weight, prob=None, book_cd=False, total=True):
-    if promo:
+    if book_cd:
         return 0, round(total_weight*11.99, 2)
     fixed_rate = 5*1.22
     fixed_step_threshold = 2
     weight_threshold = 0.601
-    weight_steps = [( 0.001,  0.501, 11.99),
-                    ( 0.501,  0.601, 15.50),
-                    ( 0.601,  5.001, 23.50),
-                    ( 5.001, 10.001, 20.50),
-                    (10.001, 20.001, 17.50)]
+    weight_steps = [( 0.001,  0.501, 11.99, 'f'),
+                    ( 0.501,  0.601, 15.50, 'f'),
+                    ( 0.601,  5.001, 23.50, 'l'),
+                    ( 5.001, 10.001, 20.50, 'l'),
+                    (10.001, 20.001, 17.50, 'l')]
     num_steps = len(weight_steps)
     if isinstance(total_weight, (int, float)):
         if total_weight == 0:
@@ -165,11 +165,10 @@ def package_cost_gripper(total_weight, promo=False, sum=True):
         return 0, round(max(total_weight, 0.6)*12, 2)
     fixed_rate = 5
     weight_threshold = 0.899
-    weight_steps = [
-        ( 0.001, 0.899, 19.80),
-        ( 0.900,     5, 21.90),
-        ( 5.001,    20, 16.50),
-        (20.001,    40, 13.20),
+    weight_steps = [( 0.001,  0.900, 19.80, 'f'),
+                    ( 0.900,  5.001, 21.90, 'l'),
+                    ( 5.001, 20.001, 16.50, 'l'),
+                    (20.001, 40.001, 13.20, 'l'),
     ]
     for min_weight, max_weight, rate in weight_steps:
         if min_weight <= total_weight <= max_weight:
