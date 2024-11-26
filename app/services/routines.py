@@ -124,7 +124,7 @@ class TransportCost:
         output += f'- Subtotal: USD {self.subtotal}\n'
         output +=  '  =========\n'
         output += f'- Tax:      USD {self.tax}\n'
-        output += f'- TFSPU:    USD {self.TSPU}\n'
+        output += f'- TFSPU:    USD {self.TFSPU}\n'
         output += f'- Total:    USD {self.total}'
         return output 
 
@@ -138,7 +138,7 @@ def ceil_in_increments(number, increments):
 
 # ADD RESTRAINTS FOR COMMON CONDITIONS
 # ====================================
-def configure_restrictions(weight_steps, total_weight, prob, ceil=False):
+def configure_restrictions(weight_steps, total_weight, prob, ceil=None):
     rates = [step[2] for step in weight_steps]
     lowbounds = [step[0] for step in weight_steps]
     upbounds = [step[1] for step in weight_steps]
@@ -171,7 +171,7 @@ def configure_restrictions(weight_steps, total_weight, prob, ceil=False):
     for i in range(num_steps):
         if ceil:
             prob = add_linear_constraints_ceil(result=w_ceil_vars[i], var=total_weight,
-                                               int_var=w_ceil_int_vars[i], prob=prob, precision=0.1)
+                                               int_var=w_ceil_int_vars[i], prob=prob, precision=ceil)
             prob = add_linear_constraints_prod_bin_cont(result=w_vars[i], bin_var=w_active_vars[i],
                                                         cont_var=w_ceil_vars[i], prob=prob)
         else:

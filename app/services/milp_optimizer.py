@@ -77,7 +77,7 @@ def milp_optimization(courier, items, max_packages=None,
     with open("variable_values.log", "w") as f:
         for var in prob.variables():
             f.write(f"{var.name} ==> {var.varValue}\n")
-    print(f"** Objective function optimal value = {pulp.value(prob.objective)}")
+    print(f"\n** Objective function optimal value = {pulp.value(prob.objective)}\n")
     # Create an object with the optimal solution
     optimal_solution = PackageSolution(courier=courier)
     for j in range(num_packages):

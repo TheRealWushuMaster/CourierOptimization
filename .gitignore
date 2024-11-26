@@ -1,4 +1,5 @@
 __pycache__/
+.vscode/
 *.pyc
 *.bsp
 purchased_items.py

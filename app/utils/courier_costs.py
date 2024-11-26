@@ -53,7 +53,7 @@ def package_cost_urubox(total_weight, prob=None, book_cd=False, total=True):
         prob, rates, w_active_vars, w_vars = configure_restrictions(weight_steps=weight_steps,
                                                                     total_weight=total_weight,
                                                                     prob=prob,
-                                                                    ceil=False)
+                                                                    ceil=None)
         fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         fixed_step_rate_sum = pulp.lpSum([rates[i] * w_active_vars[i] for i in range(fixed_step_threshold)])
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
@@ -87,7 +87,7 @@ def package_cost_miami_box(total_weight, prob=None, book_cd=False, total=True):
         prob, rates, w_active_vars, w_vars = configure_restrictions(weight_steps=weight_steps,
                                                                     total_weight=total_weight,
                                                                     prob=prob,
-                                                                    ceil=True)
+                                                                    ceil=0.1)
         fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         fixed_step_rate_sum = rates[0] * w_active_vars[0]
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
@@ -96,9 +96,6 @@ def package_cost_miami_box(total_weight, prob=None, book_cd=False, total=True):
 def package_cost_aerobox(total_weight, prob=None, book_cd=False, total=True):
     if book_cd:
         return 0, round(total_weight*11.99, 2)
-    fixed_rate = 5*1.22
-    fixed_step_threshold = 2
-    weight_threshold = 0.601
     weight_steps = [( 0.001,  0.501, 11.99, 'f'),
                     ( 0.501,  0.601, 15.50, 'f'),
                     ( 0.601,  5.001, 23.50, 'l'),
@@ -112,114 +109,186 @@ def package_cost_aerobox(total_weight, prob=None, book_cd=False, total=True):
                                total=total)
         if book_cd:
             handling_rate = 0
-            weight_rate = round(max(total_weight, 1)*9.9, COST_DECIMALS)
         else:
             handling_rate = 5 * (1 + VAT_RATE)
-            weight_rate = return_rate(weight_steps=weight_steps,
-                                      total_weight=total_weight,
-                                      increments=0.1)
+        weight_rate = return_rate(weight_steps=weight_steps,
+                                  total_weight=total_weight,
+                                  increments=0.1)
         return cost_result(fixed_rate=handling_rate,
                            variable_rate=weight_rate,
                            total=total)
-    
-    
-    
-    if isinstance(total_weight, (int, float)):
-        for min_weight, max_weight, rate in weight_steps:
-            if min_weight <= total_weight < max_weight:
-                variable_rate = rate if total_weight < weight_threshold else total_weight * rate
-                return fixed_rate, round(variable_rate, 2)
     elif isinstance(total_weight, pulp.LpVariable):
-        rates = [step[2] for step in weight_steps]
-        lowbounds = [step[0] for step in weight_steps]
-        upbounds = [step[1] for step in weight_steps]
-        w_vars = []
-        w_lb_vars = []
-        w_ub_vars = []
-        w_active_vars = []
-        for i in range(num_steps):
-            w_var = pulp.LpVariable(f'w{i+1}_{total_weight}', lowBound=0)
-            w_lb_var = pulp.LpVariable(f'w{i+1}_{total_weight}_lb', cat='Binary')
-            w_ub_var = pulp.LpVariable(f'w{i+1}_{total_weight}_ub', cat='Binary')
-            w_active_var = pulp.LpVariable(f'w{i+1}_{total_weight}_active', cat='Binary')
-            w_vars.append(w_var)
-            w_lb_vars.append(w_lb_var)
-            w_ub_vars.append(w_ub_var)
-            w_active_vars.append(w_active_var)
-        prob += pulp.lpSum(w_active_vars) <= 1
-        for i in range(num_steps):
-            prob = add_linear_constraints_var_within_limits(result=w_active_vars[i], var=total_weight,
-                                                            var_low=w_lb_vars[i], var_high=w_ub_vars[i],
-                                                            limit_low=lowbounds[i],
-                                                            limit_high=upbounds[i], prob=prob,
-                                                            avoid_low_limit=True if i==0 else False)
-            prob = add_linear_constraints_prod_bin_cont(result=w_vars[i], bin_var=w_active_vars[i],
-                                                        cont_var=total_weight, prob=prob)
-        fixed_rate_sum = fixed_rate * pulp.lpSum(w_active_vars)
+        handling_rate = 5 * (1 + VAT_RATE)
+        fixed_step_threshold = return_fixed_step_threshold(weight_steps=weight_steps)
+        prob, rates, w_active_vars, w_vars = configure_restrictions(weight_steps=weight_steps,
+                                                                    total_weight=total_weight,
+                                                                    prob=prob,
+                                                                    ceil=0.1)
+        fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
+        fixed_step_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold)])
+        linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
+        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
+
+def package_cost_gripper(total_weight, prob=None, book_cd=False, total=True):
+    weight_steps = [( 0.001,  0.900, 19.80, 'f'),
+                    ( 0.900,  5.000, 21.90, 'l'),
+                    ( 5.001, 20.000, 16.50, 'l'),
+                    (20.001, 40.000, 13.20, 'l')]
+    num_steps = len(weight_steps)
+    if isinstance(total_weight, (int, float)):
+        if total_weight == 0:
+            return cost_result(fixed_rate=0,
+                               variable_rate=0,
+                               total=total)
+        if book_cd:
+            handling_rate = 0
+            weight_rate = round(max(total_weight, 0.6)*12.0, COST_DECIMALS)
+        else:
+            handling_rate = 5
+            weight_rate = return_rate(weight_steps=weight_steps,
+                                      total_weight=total_weight)
+        return cost_result(fixed_rate=handling_rate,
+                           variable_rate=weight_rate,
+                           total=total)
+    elif isinstance(total_weight, pulp.LpVariable):
+        handling_rate = 5
+        fixed_step_threshold = return_fixed_step_threshold(weight_steps=weight_steps)
+        prob, rates, w_active_vars, w_vars = configure_restrictions(weight_steps=weight_steps,
+                                                                    total_weight=total_weight,
+                                                                    prob=prob)
+        fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
+        fixed_step_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold)])
+        linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
+        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
+
+def package_cost_punto_mio(total_weight, prob=None, book_cd=False, total=True):
+    weight_steps = [( 0.001,  0.500,  8.99, 'f'),
+                    ( 0.500, 40.000, 16.00, 'l')]
+    num_steps = len(weight_steps)
+    if isinstance(total_weight, (int, float)):
+        if total_weight == 0:
+            return cost_result(fixed_rate=0,
+                               variable_rate=0,
+                               total=total)
+        if book_cd:
+            handling_rate = 5
+            weight_rate = round(max(ceil_in_increments(total_weight, 1), 1)*8.99, COST_DECIMALS)
+        else:
+            handling_rate = 5
+            weight_rate = return_rate(weight_steps=weight_steps,
+                                      total_weight=total_weight,
+                                      increments=0.1)
+            if total_weight > 0.5:
+                weight_rate += 5
+        return cost_result(fixed_rate=handling_rate,
+                           variable_rate=weight_rate,
+                           total=total)
+    elif isinstance(total_weight, pulp.LpVariable):
+        handling_rate = 5
+        fixed_step_threshold = return_fixed_step_threshold(weight_steps=weight_steps)
+        prob, rates, w_active_vars, w_vars = configure_restrictions(weight_steps=weight_steps,
+                                                                    total_weight=total_weight,
+                                                                    prob=prob,
+                                                                    ceil=0.1)
+        fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
+        fixed_step_rate_sum = pulp.lpSum([5 * w_active_vars[i] + rates[i] * w_vars[i] for i in range(fixed_step_threshold)])
+        linear_rate_sum = pulp.lpSum([5 * w_active_vars[i] + rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
+        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
+
+def package_cost_uruguay_cargo(total_weight, prob=None, book_cd=False, total=True):
+    # Confirmar si el handling es por cada paquete sin consolidar
+    weight_steps = [( 0.001,  0.501, 14.99, 'f'),
+                    ( 0.501,  5.001, 19.50, 'l'),
+                    ( 5.001, 10.001, 18.99, 'l'),
+                    (10.001, 20.001, 18.20, 'l')]
+    num_steps = len(weight_steps)
+    if isinstance(total_weight, (int, float)):
+        if total_weight == 0:
+            return cost_result(fixed_rate=0,
+                               variable_rate=0,
+                               total=total)
+        if book_cd:
+            handling_rate = 2.5
+        else:
+            handling_rate = 4
+        weight_rate = return_rate(weight_steps=weight_steps,
+                                  total_weight=total_weight)
+        return cost_result(fixed_rate=handling_rate,
+                           variable_rate=weight_rate,
+                           total=total)
+    elif isinstance(total_weight, pulp.LpVariable):
+        handling_rate = 4
+        fixed_step_threshold = return_fixed_step_threshold(weight_steps=weight_steps)
+        prob, rates, w_active_vars, w_vars = configure_restrictions(weight_steps=weight_steps,
+                                                                    total_weight=total_weight,
+                                                                    prob=prob,
+                                                                    ceil=None)
+        fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         fixed_step_rate_sum = pulp.lpSum([rates[i] * w_active_vars[i] for i in range(fixed_step_threshold)])
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
         return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
 
-def package_cost_gripper(total_weight, promo=False, sum=True):
-    if promo:
-        return 0, round(max(total_weight, 0.6)*12, 2)
-    fixed_rate = 5
-    weight_threshold = 0.899
-    weight_steps = [( 0.001,  0.900, 19.80, 'f'),
-                    ( 0.900,  5.001, 21.90, 'l'),
-                    ( 5.001, 20.001, 16.50, 'l'),
-                    (20.001, 40.001, 13.20, 'l'),
-    ]
-    for min_weight, max_weight, rate in weight_steps:
-        if min_weight <= total_weight <= max_weight:
-            variable_rate = rate if total_weight <= weight_threshold else total_weight * rate
-            return fixed_rate, round(variable_rate, 2)
+def package_cost_usx(total_weight, prob=None, book_cd=False, total=True):
+    if isinstance(total_weight, (int, float)):
+        if total_weight == 0:
+            return cost_result(fixed_rate=0,
+                               variable_rate=0,
+                               total=total)
+        if book_cd:
+            rate = 10.5
+        else:
+            rate = 17.5
+        weight_rate = rate * ceil_in_increments(number=total_weight,
+                                                increments=0.1)
+        return cost_result(fixed_rate=0,
+                           variable_rate=weight_rate,
+                           total=total)
+    elif isinstance(total_weight, pulp.LpVariable):
+        weight_steps = [( 0.001,  40, 17.5, 'l')]
+        num_steps = len(weight_steps)
+        prob, rates, w_active_vars, w_vars = configure_restrictions(weight_steps=weight_steps,
+                                                                    total_weight=total_weight,
+                                                                    prob=prob,
+                                                                    ceil=None)
+        linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(num_steps)])
+        return linear_rate_sum
 
-def package_cost_punto_mio(total_weight, promo=False, sum=True):
-    if promo:
-        first_tier = 8.9
-        rest_tier = 8.9
-        tier = 1
-    else:
-        first_tier = 13.0
-        rest_tier = 8.0
-        tier = 0.5
-    handling = 5.0
-    if total_weight <= 0.5:
-        return handling, first_tier
-    else:
-        variable_cost = round((total_weight-0.5)/tier * rest_tier, 2)
-        return handling, first_tier + variable_cost
-
-def package_cost_uruguay_cargo(total_weight, promo=False, sum=True):
-    # Confirmar si el handling es por cada paquete sin consolidar
-    fixed_rate = 2.5 if promo else 4
-    weight_threshold = 0.500
-    weight_steps = [
-        ( 0.001, 0.500, 14.99),
-        ( 0.501,     5, 19.50),
-        ( 5.001,    10, 18.99),
-        (10.001,    20, 18.20),
-    ]
-    for min_weight, max_weight, rate in weight_steps:
-        if min_weight <= total_weight <= max_weight:
-            variable_rate = rate if total_weight <= weight_threshold else total_weight * rate
-            return fixed_rate, round(variable_rate, 2)
-
-def package_cost_usx(total_weight, promo=False, sum=True):
-    variable_rate = round(ceil(total_weight / 0.1) / 10 * 17.5, 2)
-    return 0, variable_rate
-
-def package_cost_exur(total_weight, promo=False, sum=True):
+def package_cost_exur(total_weight, prob=None, book_cd=False, total=True):
     cost_first_lb = 18.0
     cost_rest_lbs = 7.5
-    lbs_per_kg = 2.204623
-    weight_lbs = round(total_weight*lbs_per_kg, 2)
+    weight_lbs = round(total_weight*LBS_PER_KG, 2)
     if weight_lbs <= 1:
         return 0, cost_first_lb
     else:
         variable_cost = round(ceil(weight_lbs - 1) * cost_rest_lbs, 2)
         return 0, cost_first_lb + variable_cost
+    
+    if isinstance(total_weight, (int, float)):
+        if total_weight == 0:
+            return cost_result(fixed_rate=0,
+                               variable_rate=0,
+                               total=total)
+        if book_cd:
+            rate = 6
+        else:
+            rate = 17.5
+        weight_rate = rate * ceil_in_increments(number=total_weight,
+                                                increments=0.1)
+        return cost_result(fixed_rate=0,
+                           variable_rate=weight_rate,
+                           total=total)
+    elif isinstance(total_weight, pulp.LpVariable):
+        weight_steps = [( 0.001,  40, 17.5, 'l')]
+        num_steps = len(weight_steps)
+        prob, rates, w_active_vars, w_vars = configure_restrictions(weight_steps=weight_steps,
+                                                                    total_weight=total_weight,
+                                                                    prob=prob,
+                                                                    ceil=None)
+        linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(num_steps)])
+        return linear_rate_sum
+    
+    
+    
 
 def package_cost_grinbox(total_weight, book_cd=False, total=True):
     weight_steps = [( 0.0, 10.0, 22.0, 'l'),
@@ -291,5 +360,5 @@ def package_cost_buybox(total_weight, book_cd=False, total=True):
     elif isinstance(total_weight, pulp.LpVariable):
         pass
 
-#for i in (1, 2, 5.52, 8, 12, 16, 22.35):
-#    print(f"Peso = {i}: {package_cost_miami_box(total_weight=i, book_cd=False):.2f}")
+# for i in (1, 2, 5.52, 8, 12, 16, 19.35):
+#     print(f"Peso = {i}: {package_cost_uruguay_cargo(total_weight=i, book_cd=False):.2f}")
