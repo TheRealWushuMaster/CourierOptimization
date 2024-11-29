@@ -254,41 +254,38 @@ def package_cost_usx(total_weight, prob=None, book_cd=False, total=True):
         return linear_rate_sum
 
 def package_cost_exur(total_weight, prob=None, book_cd=False, total=True):
-    cost_first_lb = 18.0
-    cost_rest_lbs = 7.5
-    weight_lbs = round(total_weight*LBS_PER_KG, 2)
-    if weight_lbs <= 1:
-        return 0, cost_first_lb
-    else:
-        variable_cost = round(ceil(weight_lbs - 1) * cost_rest_lbs, 2)
-        return 0, cost_first_lb + variable_cost
-    
     if isinstance(total_weight, (int, float)):
         if total_weight == 0:
             return cost_result(fixed_rate=0,
                                variable_rate=0,
                                total=total)
+        weight_lbs = round(total_weight*LBS_PER_KG, 2)
         if book_cd:
-            rate = 6
+            cost_first_lb = 6.0
+            cost_rest_lbs = 6.0
         else:
-            rate = 17.5
-        weight_rate = rate * ceil_in_increments(number=total_weight,
-                                                increments=0.1)
+            cost_first_lb = 18.0
+            cost_rest_lbs = 7.5
         return cost_result(fixed_rate=0,
-                           variable_rate=weight_rate,
+                           variable_rate=round(cost_first_lb + max(ceil(weight_lbs-1)* cost_rest_lbs, 0), 2),
                            total=total)
     elif isinstance(total_weight, pulp.LpVariable):
-        weight_steps = [( 0.001,  40, 17.5, 'l')]
-        num_steps = len(weight_steps)
+        weight_steps = [(0.001,  1.001, 18.0, 'f'),
+                        (1.001, 40.000,  7.5, 'l')]
         prob, rates, w_active_vars, w_vars = configure_restrictions(weight_steps=weight_steps,
-                                                                    total_weight=total_weight,
+                                                                    total_weight=total_weight*LBS_PER_KG,
                                                                     prob=prob,
                                                                     ceil=None)
-        linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(num_steps)])
-        return linear_rate_sum
-    
-    
-    
+        w_above_1 = pulp.LpVariable(f'w2_above_1_{total_weight}', lowBound=0)
+        w_above_1_aux = pulp.LpVariable(f'w2_above_1_{total_weight}_aux', cat='Binary')
+        prob = add_linear_constraints_max(result=w_above_1,
+                                          value1=w_vars[1]-1,
+                                          value2=0,
+                                          auxiliary_var=w_above_1_aux,
+                                          prob=prob)
+        fixed_step_rate_sum = rates[0] * (w_active_vars[0] + w_active_vars[1])
+        linear_rate_sum = rates[1] * w_above_1
+        return fixed_step_rate_sum + linear_rate_sum
 
 def package_cost_grinbox(total_weight, book_cd=False, total=True):
     weight_steps = [( 0.0, 10.0, 22.0, 'l'),
