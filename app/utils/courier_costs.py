@@ -130,9 +130,9 @@ def package_cost_aerobox(total_weight, prob=None, book_cd=False, total=True):
         return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
 
 def package_cost_gripper(total_weight, prob=None, book_cd=False, total=True):
-    weight_steps = [( 0.001,  0.900, 19.80, 'f'),
-                    ( 0.900,  5.000, 21.90, 'l'),
-                    ( 5.001, 20.000, 16.50, 'l'),
+    weight_steps = [( 0.001,  0.901, 19.80, 'f'),
+                    ( 0.900,  5.001, 21.90, 'l'),
+                    ( 5.001, 20.001, 16.50, 'l'),
                     (20.001, 40.000, 13.20, 'l')]
     num_steps = len(weight_steps)
     if isinstance(total_weight, (int, float)):
@@ -162,7 +162,7 @@ def package_cost_gripper(total_weight, prob=None, book_cd=False, total=True):
         return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
 
 def package_cost_punto_mio(total_weight, prob=None, book_cd=False, total=True):
-    weight_steps = [( 0.001,  0.500,  8.99, 'f'),
+    weight_steps = [( 0.001,  0.501,  8.99, 'f'),
                     ( 0.500, 40.000, 16.00, 'l')]
     num_steps = len(weight_steps)
     if isinstance(total_weight, (int, float)):
@@ -288,9 +288,9 @@ def package_cost_exur(total_weight, prob=None, book_cd=False, total=True):
         return fixed_step_rate_sum + linear_rate_sum
 
 def package_cost_grinbox(total_weight, prob=None, book_cd=False, total=True):
-    weight_steps = [( 0.0, 10.0, 22.0, 'l'),
-                    (10.0, 20.0, 19.8, 'l'),
-                    (20.0, 40.0, 17.6, 'l')]
+    weight_steps = [( 0.0, 10.001, 22.0, 'l'),
+                    (10.0, 20.001, 19.8, 'l'),
+                    (20.0, 40.000, 17.6, 'l')]
     num_steps = len(weight_steps)
     if isinstance(total_weight, (int, float)):
         if total_weight == 0:
