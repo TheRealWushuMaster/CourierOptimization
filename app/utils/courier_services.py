@@ -9,6 +9,6 @@ couriers = {"Urubox": {"cost_function": package_cost_urubox},
             "USX": {"cost_function": package_cost_usx},
             "Exur": {"cost_function": package_cost_exur},
             "Grinbox": {"cost_function": package_cost_grinbox},
-            "Me Lo Traigo": {"cost_function": package_cost_melotraigo},
+            "MeLoTRAIGO": {"cost_function": package_cost_melotraigo},
             "Buybox": {"cost_function": package_cost_buybox}
             }
