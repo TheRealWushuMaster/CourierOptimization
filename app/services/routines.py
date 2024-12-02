@@ -144,6 +144,12 @@ class TransportCost:
 def ceil_in_increments(number, increments):
     return ceil(number / increments) * increments
 
+def read_json_input(json_input):
+    purchased_items = [(item['name'], item['price'], item['weight']) for item in json_input['purchases']]
+    selected_courier = json_input['courier_service']
+    fee_exemptions = json_input['import_fee_exemptions']
+    return purchased_items, selected_courier, fee_exemptions
+
 # ADD RESTRAINTS FOR COMMON CONDITIONS
 # ====================================
 def configure_restrictions(weight_steps, total_weight, prob, ceil=None):

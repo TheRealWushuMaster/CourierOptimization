@@ -1,12 +1,11 @@
 from app.services.brute_force_optimizer import *
 from app.services.milp_optimizer import *
 from app.utils.courier_services import *
-from app.data.purchased_items import purchased_items
+from app.data.purchased_items import items
 
 # PARAMETERS
 # ==========
-selected_courier = "Grinbox"  # Name of the courier used
-fee_exemptions = 2              # Maximum import fee exemptions to use
+purchased_items, selected_courier, fee_exemptions = read_json_input(items)
 
 # OPTIMIZATION STRATEGY
 # =====================
