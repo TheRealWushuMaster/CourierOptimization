@@ -2,6 +2,8 @@ from math import ceil
 import pulp
 from app.services.routines import *
 
+# ROUTINES
+# ========
 def cost_result(fixed_rate, variable_rate, total=True):
     package_cost = TransportCost(handling=fixed_rate,
                                  freight=variable_rate)
@@ -24,6 +26,8 @@ def return_rate(weight_steps, total_weight, increments=0):
 def return_fixed_step_threshold(weight_steps):
     return sum(1 for step in weight_steps if step[3] == 'f')
 
+# COST FUNCTIONS
+# ==============
 def package_cost_urubox(total_weight, prob=None, book_cd=False, total=True):
     handling_rate = 5
     weight_steps = [( 0.0,  0.2, 10.9, 'f'),
@@ -57,7 +61,9 @@ def package_cost_urubox(total_weight, prob=None, book_cd=False, total=True):
         fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         fixed_step_rate_sum = pulp.lpSum([rates[i] * w_active_vars[i] for i in range(fixed_step_threshold)])
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
-        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
+        return cost_result(fixed_rate=fixed_rate_sum,
+                           variable_rate=fixed_step_rate_sum + linear_rate_sum,
+                           total=total)
 
 def package_cost_miami_box(total_weight, prob=None, book_cd=False, total=True):
     weight_steps = [( 0.0,  0.4, 10.00, 'f'),
@@ -91,7 +97,9 @@ def package_cost_miami_box(total_weight, prob=None, book_cd=False, total=True):
         fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         fixed_step_rate_sum = rates[0] * w_active_vars[0]
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
-        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
+        return cost_result(fixed_rate=fixed_rate_sum,
+                            variable_rate=fixed_step_rate_sum + linear_rate_sum,
+                            total=total)
 
 def package_cost_aerobox(total_weight, prob=None, book_cd=False, total=True):
     if book_cd:
@@ -127,7 +135,9 @@ def package_cost_aerobox(total_weight, prob=None, book_cd=False, total=True):
         fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         fixed_step_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold)])
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
-        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
+        return cost_result(fixed_rate=fixed_rate_sum,
+                           variable_rate=fixed_step_rate_sum + linear_rate_sum,
+                           total=total)
 
 def package_cost_gripper(total_weight, prob=None, book_cd=False, total=True):
     weight_steps = [( 0.001,  0.901, 19.80, 'f'),
@@ -159,7 +169,9 @@ def package_cost_gripper(total_weight, prob=None, book_cd=False, total=True):
         fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         fixed_step_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold)])
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
-        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
+        return cost_result(fixed_rate=fixed_rate_sum,
+                           variable_rate=fixed_step_rate_sum + linear_rate_sum,
+                           total=total)
 
 def package_cost_punto_mio(total_weight, prob=None, book_cd=False, total=True):
     weight_steps = [( 0.001,  0.501,  8.99, 'f'),
@@ -193,7 +205,9 @@ def package_cost_punto_mio(total_weight, prob=None, book_cd=False, total=True):
         fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         fixed_step_rate_sum = pulp.lpSum([5 * w_active_vars[i] + rates[i] * w_vars[i] for i in range(fixed_step_threshold)])
         linear_rate_sum = pulp.lpSum([5 * w_active_vars[i] + rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
-        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
+        return cost_result(fixed_rate=fixed_rate_sum,
+                           variable_rate=fixed_step_rate_sum + linear_rate_sum,
+                           total=total)
 
 def package_cost_uruguay_cargo(total_weight, prob=None, book_cd=False, total=True):
     # Confirmar si el handling es por cada paquete sin consolidar
@@ -226,7 +240,9 @@ def package_cost_uruguay_cargo(total_weight, prob=None, book_cd=False, total=Tru
         fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         fixed_step_rate_sum = pulp.lpSum([rates[i] * w_active_vars[i] for i in range(fixed_step_threshold)])
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(fixed_step_threshold, num_steps)])
-        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
+        return cost_result(fixed_rate=fixed_rate_sum,
+                           variable_rate=fixed_step_rate_sum + linear_rate_sum,
+                           total=total)
 
 def package_cost_usx(total_weight, prob=None, book_cd=False, total=True):
     if isinstance(total_weight, (int, float)):
@@ -251,7 +267,9 @@ def package_cost_usx(total_weight, prob=None, book_cd=False, total=True):
                                                                     prob=prob,
                                                                     ceil=None)
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(num_steps)])
-        return linear_rate_sum
+        return cost_result(fixed_rate=0,
+                           variable_rate=linear_rate_sum,
+                           total=total)
 
 def package_cost_exur(total_weight, prob=None, book_cd=False, total=True):
     if isinstance(total_weight, (int, float)):
@@ -285,7 +303,9 @@ def package_cost_exur(total_weight, prob=None, book_cd=False, total=True):
                                           prob=prob)
         fixed_step_rate_sum = rates[0] * (w_active_vars[0] + w_active_vars[1])
         linear_rate_sum = rates[1] * w_above_1
-        return fixed_step_rate_sum + linear_rate_sum
+        return cost_result(fixed_rate=0,
+                           variable_rate=fixed_step_rate_sum + linear_rate_sum,
+                           total=total)
 
 def package_cost_grinbox(total_weight, prob=None, book_cd=False, total=True):
     weight_steps = [( 0.0, 10.001, 22.0, 'l'),
@@ -315,7 +335,9 @@ def package_cost_grinbox(total_weight, prob=None, book_cd=False, total=True):
                                                                     ceil=None)
         fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(num_steps)])
-        return fixed_rate_sum + linear_rate_sum
+        return cost_result(fixed_rate=fixed_rate_sum,
+                           variable_rate=linear_rate_sum,
+                           total=total)
 
 def package_cost_melotraigo(total_weight, prob=None, book_cd=False, total=True):
     weight_steps = [( 0.001,  5.001, 20.9, 'l'),
@@ -346,7 +368,9 @@ def package_cost_melotraigo(total_weight, prob=None, book_cd=False, total=True):
                                                                     ceil=None)
         fixed_rate_sum = handling_rate * pulp.lpSum(w_active_vars)
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i] for i in range(num_steps)])
-        return fixed_rate_sum + linear_rate_sum
+        return cost_result(fixed_rate=fixed_rate_sum,
+                           variable_rate=linear_rate_sum,
+                           total=total)
 
 def package_cost_buybox(total_weight, prob=None, book_cd=False, total=True):
     weight_steps = [( 0.000,  0.501,  5.9, 'f'),
@@ -384,4 +408,6 @@ def package_cost_buybox(total_weight, prob=None, book_cd=False, total=True):
                                           for i in range(fixed_step_threshold)])
         linear_rate_sum = pulp.lpSum([rates[i] * w_vars[i]
                                       for i in range(fixed_step_threshold, num_steps)])
-        return fixed_rate_sum + fixed_step_rate_sum + linear_rate_sum
+        return cost_result(fixed_rate=fixed_rate_sum,
+                           variable_rate=fixed_step_rate_sum + linear_rate_sum,
+                           total=total)

@@ -87,7 +87,7 @@ class PackageSolution:
     
     def save_to_file(self, filename='solution_details.log'):
         try:
-            with open(filename, 'w') as file:
+            with open("output\\"+filename, 'w') as file:
                 print(self, file=file)
             print(f"File '{filename}' saved successfully.")
         except IOError as e:
@@ -95,12 +95,20 @@ class PackageSolution:
 
 class TransportCost:
     def __init__(self, handling, freight):
-        self.handling = round(handling, COST_DECIMALS)
-        self.freight = round(freight, COST_DECIMALS)
-        self.subtotal = self.handling + self.freight
-        self.tax = round(TAX_ON_FREIGHT * freight, COST_DECIMALS)
-        self.TFSPU = round(self.freight * TFSPU_RATE, COST_DECIMALS)
-        self.total = round(self.subtotal + self.tax + self.TFSPU, COST_DECIMALS)
+        if isinstance(handling, (int, float)):
+            self.handling = round(handling, COST_DECIMALS)
+            self.freight = round(freight, COST_DECIMALS)
+            self.subtotal = self.handling + self.freight
+            self.tax = round(TAX_ON_FREIGHT * freight, COST_DECIMALS)
+            self.TFSPU = round(self.freight * TFSPU_RATE, COST_DECIMALS)
+            self.total = round(self.subtotal + self.tax + self.TFSPU, COST_DECIMALS)
+        else:
+            self.handling = handling
+            self.freight = freight
+            self.subtotal = self.handling + self.freight
+            self.tax = TAX_ON_FREIGHT * freight
+            self.TFSPU = self.freight * TFSPU_RATE
+            self.total = self.subtotal + self.tax + self.TFSPU
     
     @classmethod
     def zero(cls):
