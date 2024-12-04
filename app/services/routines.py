@@ -1,6 +1,7 @@
 from app.core.config import *
 import pulp
 from math import ceil
+import json
 
 # CLASSES
 # =======
@@ -92,6 +93,44 @@ class PackageSolution:
             print(f"File '{filename}' saved successfully.")
         except IOError as e:
             print(f"Error saving file '{filename}': {e}")
+    
+    def to_json(self, pretty=False):
+        result = {
+            "packages": [
+                {
+                    "package_id": i+1,
+                    "items": [
+                        {
+                            "name": item[0], "price": item[1], "weight": item[2]
+                        }
+                        for item in pkg.items],
+                    "price": round(pkg.total_price, COST_DECIMALS),
+                    "weight": pkg.total_weight,
+                    "handling": pkg.transport_cost.handling,
+                    "freight": pkg.transport_cost.freight,
+                    "subtotal": pkg.transport_cost.subtotal,
+                    "tax": pkg.transport_cost.tax,
+                    "tfspu": pkg.transport_cost.TFSPU,
+                    "transport": pkg.transport_cost.total,
+                    "import_fee": pkg.import_fee,
+                    "cost": pkg.total_package_cost
+                }
+                for i, pkg in enumerate(self.packages)
+            ],
+            "total_price": round(self.total_price, COST_DECIMALS),
+            "total_weight": self.total_weight,
+            "total_handling": self.total_transport_cost.handling,
+            "total_freight": self.total_transport_cost.freight,
+            "total_subtotal": self.total_transport_cost.subtotal,
+            "total_tax": self.total_transport_cost.tax,
+            "total_tfspu": self.total_transport_cost.TFSPU,
+            "total_transport": self.total_transport_cost.total,
+            "total_import_fee": self.total_import_fee,
+            "total_cost": self.total_cost
+        }
+        if pretty:
+            result = json.dumps(result, indent=4)
+        return result
 
 class TransportCost:
     def __init__(self, handling, freight):

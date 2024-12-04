@@ -25,4 +25,6 @@ optimal_solution = method(items=purchased_items,
 # DISPLAY/SAVE THE RESULTS
 # ========================
 optimal_solution.show()
+json_result = optimal_solution.to_json(pretty=True)
 optimal_solution.save_to_file()
+print(json_result)
