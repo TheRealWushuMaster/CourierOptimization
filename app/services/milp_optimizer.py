@@ -71,10 +71,10 @@ def milp_optimization(courier, items, max_packages=None,
     prob += pulp.lpSum([import_fee_exempted[j] for j in range(num_packages)]) <= max_exemptions
     # Objective function: Minimize the total cost (courier fee + import fee)
     prob += pulp.lpSum([total_package_cost[j] for j in range(num_packages)])
-    prob.writeLP("problem_definition.log")
+    prob.writeLP("output\\problem_definition.log")
     # Solve the problem
-    prob.solve(pulp.PULP_CBC_CMD(logPath="model_info.log", gapAbs=0.01))
-    with open("variable_values.log", "w") as f:
+    prob.solve(pulp.PULP_CBC_CMD(logPath="output\\model_info.log", gapAbs=0.01))
+    with open("output\\variable_values.log", "w") as f:
         for var in prob.variables():
             f.write(f"{var.name} ==> {var.varValue}\n")
     print(f"\n** Objective function optimal value = {pulp.value(prob.objective)}\n")
