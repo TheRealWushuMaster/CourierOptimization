@@ -4,7 +4,8 @@ from app.services.routines import *
 from app.utils.courier_services import *
 
 def milp_optimization(courier, items, max_packages=None,
-                       max_exemptions=MAX_EXEMPTIONS_PER_YEAR):
+                      max_exemptions=MAX_EXEMPTIONS_PER_YEAR,
+                      print_optimal_value=False):
     num_items = len(items)
     if max_packages == None:
         num_packages = num_items
@@ -77,7 +78,8 @@ def milp_optimization(courier, items, max_packages=None,
     with open("output\\variable_values.log", "w") as f:
         for var in prob.variables():
             f.write(f"{var.name} ==> {var.varValue}\n")
-    print(f"\n** Objective function optimal value = {pulp.value(prob.objective)}\n")
+    if print_optimal_value:
+        print(f"\n** Objective function optimal value = {pulp.value(prob.objective)}\n")
     # Create an object with the optimal solution
     optimal_solution = PackageSolution(courier=courier)
     for j in range(num_packages):

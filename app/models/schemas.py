@@ -21,7 +21,7 @@ class Package(BaseModel):
     cost: float
 
 class OptimizationRequest(BaseModel):
-    items: List[Item]
+    purchases: List[Item]
     courier_service: str
     import_fee_exemptions: int
 
@@ -30,7 +30,7 @@ class OptimizationResult(BaseModel):
     total_price: float
     total_weight: float
     total_handling: float
-    total_total_freight: float
+    total_freight: float
     total_subtotal: float
     total_tax: float
     total_tfspu: float

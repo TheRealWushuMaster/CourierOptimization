@@ -1,4 +1,5 @@
 from app.core.config import *
+from app.models.schemas import OptimizationRequest
 import pulp
 from math import ceil
 import json
@@ -184,9 +185,14 @@ def ceil_in_increments(number, increments):
     return ceil(number / increments) * increments
 
 def read_json_input(json_input):
-    purchased_items = [(item['name'], item['price'], item['weight']) for item in json_input['purchases']]
-    selected_courier = json_input['courier_service']
-    fee_exemptions = json_input['import_fee_exemptions']
+    if isinstance(json_input, OptimizationRequest):
+        purchased_items = [(item.name, item.price, item.weight) for item in json_input.purchases]
+        selected_courier = json_input.courier_service
+        fee_exemptions = json_input.import_fee_exemptions
+    elif isinstance(json_input, dict):
+        purchased_items = [(item['name'], item['price'], item['weight']) for item in json_input['purchases']]
+        selected_courier = json_input['courier_service']
+        fee_exemptions = json_input['import_fee_exemptions']
     return purchased_items, selected_courier, fee_exemptions
 
 # ADD RESTRAINTS FOR COMMON CONDITIONS

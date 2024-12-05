@@ -20,7 +20,8 @@ elif optimization_strategy==1:
 # ========
 optimal_solution = method(items=purchased_items,
                           courier=selected_courier,
-                          max_exemptions=fee_exemptions)
+                          max_exemptions=fee_exemptions,
+                          print_optimal_value=True)
 
 # DISPLAY/SAVE THE RESULTS
 # ========================
