@@ -13,3 +13,11 @@ async def optimize(data: OptimizationRequest):
                                          max_exemptions=fee_exemptions)
     result = optimal_solution.to_json()
     return result
+
+# Hacer un get para enviar la lista de couriers y
+# el máximo número de artículos en json
+# lista de couriers con un código de cada uno
+#
+#
+#
+#

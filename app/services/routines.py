@@ -135,7 +135,7 @@ class PackageSolution:
 
 class TransportCost:
     def __init__(self, handling, freight):
-        if isinstance(handling, (int, float)):
+        if isinstance(handling, (int, float)) and isinstance(freight, (int, float)):
             self.handling = round(handling, COST_DECIMALS)
             self.freight = round(freight, COST_DECIMALS)
             self.subtotal = self.handling + self.freight
