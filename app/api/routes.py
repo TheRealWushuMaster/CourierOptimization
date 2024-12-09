@@ -1,7 +1,9 @@
 from fastapi import APIRouter
-from app.models.schemas import OptimizationRequest, OptimizationResult
+from app.models.schemas import OptimizationRequest, OptimizationResult, GetInitialConfig
 from app.services.milp_optimizer import milp_optimization
 from app.services.routines import read_json_input
+from app.core.config import MAX_ITEMS
+from app.utils.courier_services import courier_list
 
 router = APIRouter()
 
@@ -14,10 +16,6 @@ async def optimize(data: OptimizationRequest):
     result = optimal_solution.to_json()
     return result
 
-# Hacer un get para enviar la lista de couriers y
-# el máximo número de artículos en json
-# lista de couriers con un código de cada uno
-#
-#
-#
-#
+@router.get("/couriers", response_model=GetInitialConfig)
+async def get_couriers():
+    return {"couriers": courier_list, "max_items": MAX_ITEMS}

@@ -37,3 +37,11 @@ class OptimizationResult(BaseModel):
     total_transport: float
     total_import_fee: float
     total_cost: float
+
+class Courier(BaseModel):
+    id: str
+    name: str
+
+class GetInitialConfig(BaseModel):
+    couriers: List[Courier]
+    max_items: int

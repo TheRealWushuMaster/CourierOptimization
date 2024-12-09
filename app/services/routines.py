@@ -3,6 +3,7 @@ from app.models.schemas import OptimizationRequest
 import pulp
 from math import ceil
 import json
+#from app.utils.courier_services import couriers
 
 # CLASSES
 # =======
@@ -130,7 +131,7 @@ class PackageSolution:
             "total_cost": self.total_cost
         }
         if pretty:
-            result = json.dumps(result, indent=4)
+            result = json_pretty(result)
         return result
 
 class TransportCost:
@@ -194,6 +195,9 @@ def read_json_input(json_input):
         selected_courier = json_input['courier_service']
         fee_exemptions = json_input['import_fee_exemptions']
     return purchased_items, selected_courier, fee_exemptions
+
+def json_pretty(json_input):
+    return json.dumps(json_input, indent=4)
 
 # ADD RESTRAINTS FOR COMMON CONDITIONS
 # ====================================

@@ -74,7 +74,9 @@ def milp_optimization(courier, items, max_packages=None,
     prob += pulp.lpSum([total_package_cost[j] for j in range(num_packages)])
     prob.writeLP("output\\problem_definition.log")
     # Solve the problem
-    prob.solve(pulp.PULP_CBC_CMD(logPath="output\\model_info.log", gapAbs=0.01))
+    print("Optimization beginning...")
+    prob.solve(pulp.PULP_CBC_CMD(logPath="output\\model_info.log"))
+    print("Optimization completed.")
     with open("output\\variable_values.log", "w") as f:
         for var in prob.variables():
             f.write(f"{var.name} ==> {var.varValue}\n")
