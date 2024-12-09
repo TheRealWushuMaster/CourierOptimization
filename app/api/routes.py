@@ -2,7 +2,7 @@ from fastapi import APIRouter
 from app.models.schemas import OptimizationRequest, OptimizationResult, GetInitialConfig
 from app.services.milp_optimizer import milp_optimization
 from app.services.routines import read_json_input
-from app.core.config import MAX_ITEMS
+from app.core.config import MAX_ITEMS, MAX_OPTIM_TIME
 from app.utils.courier_services import courier_list
 
 router = APIRouter()
@@ -18,4 +18,6 @@ async def optimize(data: OptimizationRequest):
 
 @router.get("/couriers", response_model=GetInitialConfig)
 async def get_couriers():
-    return {"couriers": courier_list, "max_items": MAX_ITEMS}
+    return {"couriers": courier_list,
+            "max_items": MAX_ITEMS,
+            "max_optim_time": MAX_OPTIM_TIME}
