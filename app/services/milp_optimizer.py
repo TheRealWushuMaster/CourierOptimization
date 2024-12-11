@@ -3,7 +3,8 @@ from app.core.config import *
 from app.services.routines import *
 from app.utils.courier_services import *
 
-def milp_optimization(courier, items, max_packages=None,
+def milp_optimization(courier, items, discount_rate= 0,
+                      max_packages=None,
                       max_exemptions=MAX_EXEMPTIONS_PER_YEAR,
                       print_optimal_value=False):
     num_items = len(items)

@@ -5,7 +5,7 @@ from app.data.purchased_items import items
 
 # PARAMETERS
 # ==========
-purchased_items, selected_courier, fee_exemptions = read_json_input(items)
+key, purchased_items, selected_courier, fee_exemptions, discount_rate = read_json_input(items)
 
 # OPTIMIZATION STRATEGY
 # =====================

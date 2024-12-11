@@ -187,17 +187,24 @@ def ceil_in_increments(number, increments):
 
 def read_json_input(json_input):
     if isinstance(json_input, OptimizationRequest):
+        key = json_input.key
         purchased_items = [(item.name, item.price, item.weight) for item in json_input.purchases]
         selected_courier = json_input.courier_service
         fee_exemptions = json_input.import_fee_exemptions
+        discount_rate = json_input.discount_rate
     elif isinstance(json_input, dict):
+        key = json_input["key"]
         purchased_items = [(item['name'], item['price'], item['weight']) for item in json_input['purchases']]
         selected_courier = json_input['courier_service']
         fee_exemptions = json_input['import_fee_exemptions']
-    return purchased_items, selected_courier, fee_exemptions
+        discount_rate = json_input["discount_rate"]
+    return key, purchased_items, selected_courier, fee_exemptions, discount_rate
 
 def json_pretty(json_input):
     return json.dumps(json_input, indent=4)
+
+def key_valid(key):
+    return True
 
 # ADD RESTRAINTS FOR COMMON CONDITIONS
 # ====================================

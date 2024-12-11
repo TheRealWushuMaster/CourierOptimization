@@ -21,9 +21,11 @@ class Package(BaseModel):
     cost: float
 
 class OptimizationRequest(BaseModel):
+    key: str
     purchases: List[Item]
     courier_service: str
     import_fee_exemptions: int
+    discount_rate: float
 
 class OptimizationResult(BaseModel):
     packages: List[Package]
@@ -45,3 +47,4 @@ class Courier(BaseModel):
 class GetInitialConfig(BaseModel):
     couriers: List[Courier]
     max_items: int
+    max_optim_time: int
