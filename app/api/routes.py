@@ -15,7 +15,7 @@ async def optimize(data: OptimizationRequest):
                                              items=purchased_items,
                                              discount_rate=discount_rate,
                                              max_exemptions=fee_exemptions,
-                                             discount_rate=discount_rate)
+                                             print_optimal_value=False)
         result = optimal_solution.to_json()
         return result
     else:
