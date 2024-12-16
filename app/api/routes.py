@@ -13,6 +13,7 @@ async def optimize(data: OptimizationRequest):
     if key_valid(key):
         optimal_solution = milp_optimization(courier=selected_courier,
                                              items=purchased_items,
+                                             discount_rate=discount_rate,
                                              max_exemptions=fee_exemptions,
                                              discount_rate=discount_rate)
         result = optimal_solution.to_json()

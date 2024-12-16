@@ -18,8 +18,9 @@ elif optimization_strategy==1:
 
 # OPTIMIZE
 # ========
-optimal_solution = method(items=purchased_items,
-                          courier=selected_courier,
+optimal_solution = method(courier=selected_courier,
+                          items=purchased_items,
+                          discount_rate=discount_rate,
                           max_exemptions=fee_exemptions,
                           print_optimal_value=True)
 
