@@ -37,3 +37,23 @@ couriers = {
     }
 courier_list = [{"id": courier_id,
                  "name": data["name"]} for courier_id, data in couriers.items()]
+
+def courier_exists(courier):
+    if courier in couriers:
+        return True
+    else:
+        return False
+
+def compare_costs(weight):
+    list = []
+    for courier in couriers:
+        cost = couriers[courier]["cost_function"](weight)
+        list.append((couriers[courier]["name"], cost))
+    max_name_length = max(len(name) for (name, cost) in list)
+    list.sort(key=lambda x: x[1])
+    print(f"** Weight = {weight:.3f} kg\n")
+    print("** Total transport cost per courier:\n")
+    print(f"Nº  {'Courier'.ljust(max_name_length)}  Cost")
+    print("-" * 24)
+    for i, (name, cost) in enumerate(list):
+        print(f"{(str(i+1)+".").ljust(3)} {name.ljust(max_name_length)}  {cost:.2f}")

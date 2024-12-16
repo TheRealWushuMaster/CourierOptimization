@@ -1,9 +1,14 @@
 from math import ceil
 import pulp
-from app.services.routines import *
+from app.core.config import *
+from app.utils.constraints import *
+from app.models.classes import TransportCost
 
 # ROUTINES
 # ========
+def ceil_in_increments(number, increments):
+    return ceil(number / increments) * increments
+
 def cost_result(fixed_rate, variable_rate, total=True):
     package_cost = TransportCost(handling=fixed_rate,
                                  freight=variable_rate)

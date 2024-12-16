@@ -1,12 +1,14 @@
 import pulp
 from app.core.config import *
-from app.services.routines import *
+from app.utils.helpers import *
+from app.models.classes import *
 from app.utils.courier_services import *
 
 def milp_optimization(courier, items, discount_rate= 0,
                       max_packages=None,
                       max_exemptions=MAX_EXEMPTIONS_PER_YEAR,
-                      print_optimal_value=False):
+                      print_return_value=False,
+                      time_limit=MAX_OPTIM_TIME):
     num_items = len(items)
     if max_packages == None:
         num_packages = num_items
@@ -76,21 +78,31 @@ def milp_optimization(courier, items, discount_rate= 0,
     prob.writeLP("output\\problem_definition.log")
     # Solve the problem
     print("Optimization beginning...")
-    prob.solve(pulp.PULP_CBC_CMD(logPath="output\\model_info.log"))
+    solver = pulp.PULP_CBC_CMD(logPath="output\\model_info.log",
+                               timeLimit=time_limit)
+    status = prob.solve(solver)
+    solver_time = prob.solutionTime
     print("Optimization completed.")
+    if solver_time<=MAX_OPTIM_TIME:
+        status = "Optimal"
+    else:
+        status = "Partial"
+    print(f"\n>> {status} solution has been determined in {solver_time:.2f} seconds <<")
     with open("output\\variable_values.log", "w") as f:
         for var in prob.variables():
             f.write(f"{var.name} ==> {var.varValue}\n")
-    if print_optimal_value:
-        print(f"\n** Objective function optimal value = {pulp.value(prob.objective)}\n")
+    if print_return_value:
+        print(f"\n** Objective function value = {pulp.value(prob.objective):.2f}\n")
     # Create an object with the optimal solution
-    optimal_solution = PackageSolution(courier=courier)
+    optimal_solution = PackageSolution(courier=courier,
+                                       status=status,
+                                       time_spent=solver_time)
     for j in range(num_packages):
         assigned_items = [(items[i][0], items[i][1], items[i][2]) for i in range(num_items) if pulp.value(x[i, j]) == 1]
         if assigned_items:
             total_price = sum(item[1] for item in assigned_items)
             total_weight = sum(item[2] for item in assigned_items)
-            transport_cost = courier_cost(total_weight, total=False)#pulp.value(transport_cost[j])
+            transport_cost = courier_cost(total_weight, total=False)
             import_fee = pulp.value(final_import_fee[j])
             import_fee_exemption = bool(pulp.value(import_fee_exempted[j]))
             # Create a Package object
