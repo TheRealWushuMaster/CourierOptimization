@@ -83,7 +83,7 @@ def milp_optimization(courier, items, discount_rate= 0,
     status = prob.solve(solver)
     solver_time = prob.solutionTime
     print("Optimization completed.")
-    if solver_time<=MAX_OPTIM_TIME:
+    if solver_time<=MAX_OPTIM_TIME-OPTIM_TIME_TOLERANCE:
         status = "Optimal"
     else:
         status = "Partial"
