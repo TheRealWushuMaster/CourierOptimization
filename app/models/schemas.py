@@ -28,6 +28,8 @@ class OptimizationRequest(BaseModel):
     discount_rate: float
 
 class OptimizationResult(BaseModel):
+    status: str
+    time_spent: float
     packages: List[Package]
     total_price: float
     total_weight: float

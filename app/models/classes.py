@@ -94,6 +94,8 @@ class PackageSolution:
     
     def to_json(self, pretty=False):
         result = {
+            "status": self.status,
+            "time_spent": self.time_spent,
             "packages": [
                 {
                     "package_id": i+1,
