@@ -94,7 +94,8 @@ def milp_optimization(courier, items, discount_rate= 0,
     if print_return_value:
         print(f"\n** Objective function value = {pulp.value(prob.objective):.2f}\n")
     # Create an object with the optimal solution
-    optimal_solution = PackageSolution(courier=courier,
+    optimal_solution = PackageSolution(courier_id=courier,
+                                       courier=couriers[courier]["name"],
                                        status=status,
                                        time_spent=solver_time)
     for j in range(num_packages):

@@ -1,4 +1,6 @@
 from app.core.config import *
+#from app.utils.helpers import format_table
+import app.utils.helpers
 import json
 
 class Package:
@@ -13,7 +15,7 @@ class Package:
         self.total_package_cost = transport_cost.total + import_fee
 
 class PackageSolution:
-    def __init__(self, courier, status="", solutions=0, time_spent=0):
+    def __init__(self, courier_id, courier, status="", solutions=0, time_spent=0):
         self.packages = []              # List of Package objects
         self.total_weight = 0           # Total weight of all packages
         self.total_price = 0            # Total price of all packages
@@ -21,6 +23,7 @@ class PackageSolution:
                                         # Total transport cost of all packages
         self.total_import_fee = 0       # Total import fees of all packages
         self.total_cost = 0             # Total cost including transport and import fees
+        self.courier_id = courier_id
         self.courier = courier
         self.solutions = solutions
         self.status = status
@@ -35,47 +38,35 @@ class PackageSolution:
         self.total_cost += package.transport_cost.total + package.import_fee
     
     def __str__(self):
-        result  = f"{self.status} solution found for courier {self.courier} in {self.time_spent:.2f} seconds.\n"
-        result += '\n'
+        result  = f"{self.status} solution found for courier '{self.courier}' ({self.courier_id})\n\n"
+        result += f"- Time spent: {self.time_spent:.2f} seconds\n"
+        num_packages = len(self.packages)
+        result += f"- Packages: {num_packages}\n\n"
+        result += 'PACKAGE DETAILS\n\n'
         for i, package in enumerate(self.packages):
-            result += f"* Package {i+1}:\n"
-            result +=  "  ==========\n"
+            result += f"* Package {i+1}" + (f" of {num_packages}" if num_packages>1 else "") + ":\n"
+            result +=  "  ==========" + ("="*(4+len(str(num_packages))) if num_packages>1 else "") + "\n"
             result += '\n'
-            result +=  "  - Items included:\n"
-            for n, item in enumerate(package.items):
-                result += f"      {n+1}. {item[0]} (USD {item[1]}, {item[2]} kg)\n"
+            result +=  "  - Items included:\n\n"
+            result = app.utils.helpers.add_result_table(data=package.items,
+                                                        result=result,
+                                                        type="items")
             result += '\n'
-            result +=  "  - Package information:\n"
-            result += f"    Total price:     USD {package.total_price:.2f}\n"
-            result += f"    Total weight:        {package.total_weight:.2f} kg\n"
-            result += '\n'
-            result +=  "  - Costs information:\n"
-            result +=  "    Transport costs:\n"
-            result += f"      * Handling:  USD {package.transport_cost.handling:.2f}\n"
-            result += f"      * Freight:   USD {package.transport_cost.freight:.2f}\n"
-            result += f"      * Subtotal:  USD {package.transport_cost.subtotal:.2f}\n"
-            result += f"      * Tax:       USD {package.transport_cost.tax:.2f}\n"
-            result += f"      * TFSPU:     USD {package.transport_cost.TFSPU:.2f}\n"
-            result += f"      * Total:     USD {package.transport_cost.total:.2f}\n"
-            result += f"    Import fee:      USD {package.import_fee:.2f}"+(" (fee exempted)" if package.import_fee_exempted else "")+'\n'
-            result += '\n'
-            result += f"    Total cost:      USD {package.total_package_cost:.2f}\n"
+            result +=  "  - Costs information:\n\n"
+            result = app.utils.helpers.add_result_table(data=package,
+                                                        result=result,
+                                                        type="cost")
             result += '\n'
         result += "---\n"
         result += "Totals:\n"
+        result += "=======\n\n"
         result += f"Total price:         USD {self.total_price:.2f}\n"
         result += f"Total weight:            {self.total_weight:.2f} kg\n"
         result += '\n'
-        result +=  "Total transport costs:\n"
-        result += f"  * Handling:  USD {self.total_transport_cost.handling:.2f}\n"
-        result += f"  * Freight:   USD {self.total_transport_cost.freight:.2f}\n"
-        result += f"  * Subtotal:  USD {self.total_transport_cost.subtotal:.2f}\n"
-        result += f"  * Tax:       USD {self.total_transport_cost.tax:.2f}\n"
-        result += f"  * TFSPU:     USD {self.total_transport_cost.TFSPU:.2f}\n"
-        result += f"  * Total:     USD {self.total_transport_cost.total:.2f}\n"
-        result += f"Total import fee:    USD {self.total_import_fee:.2f}\n"
-        result += '\n'
-        result += f"Total cost:          USD {self.total_cost:.2f}\n"
+        result +=  "Total transport costs:\n\n"
+        result = app.utils.helpers.add_result_table(data=self,
+                                                    result=result,
+                                                    type="total_cost")
         if self.solutions > 0:
             result += '\n'
             result += f"Solutions analyzed:  {self.solutions}"
