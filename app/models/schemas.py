@@ -13,7 +13,6 @@ class Package(BaseModel):
     weight: float
     handling: float
     freight: float
-    subtotal: float
     tax: float
     tfspu: float
     transport: float
@@ -35,7 +34,6 @@ class OptimizationResult(BaseModel):
     total_weight: float
     total_handling: float
     total_freight: float
-    total_subtotal: float
     total_tax: float
     total_tfspu: float
     total_transport: float
