@@ -99,7 +99,6 @@ class PackageSolution:
                     "weight": pkg.total_weight,
                     "handling": pkg.transport_cost.handling,
                     "freight": pkg.transport_cost.freight,
-                    "subtotal": pkg.transport_cost.subtotal,
                     "tax": pkg.transport_cost.tax,
                     "tfspu": pkg.transport_cost.TFSPU,
                     "transport": pkg.transport_cost.total,
@@ -112,7 +111,6 @@ class PackageSolution:
             "total_weight": self.total_weight,
             "total_handling": self.total_transport_cost.handling,
             "total_freight": self.total_transport_cost.freight,
-            "total_subtotal": self.total_transport_cost.subtotal,
             "total_tax": self.total_transport_cost.tax,
             "total_tfspu": self.total_transport_cost.TFSPU,
             "total_transport": self.total_transport_cost.total,
@@ -128,17 +126,15 @@ class TransportCost:
         if isinstance(handling, (int, float)) and isinstance(freight, (int, float)):
             self.handling = round(handling, COST_DECIMALS)
             self.freight = round(freight, COST_DECIMALS)
-            self.subtotal = self.handling + self.freight
             self.tax = round(TAX_ON_FREIGHT * freight, COST_DECIMALS)
             self.TFSPU = round(self.freight * TFSPU_RATE, COST_DECIMALS)
-            self.total = round(self.subtotal + self.tax + self.TFSPU, COST_DECIMALS)
+            self.total = round(self.handling + self.freight + self.tax + self.TFSPU, COST_DECIMALS)
         else:
             self.handling = handling
             self.freight = freight
-            self.subtotal = self.handling + self.freight
             self.tax = TAX_ON_FREIGHT * freight
             self.TFSPU = self.freight * TFSPU_RATE
-            self.total = self.subtotal + self.tax + self.TFSPU
+            self.total = self.handling + self.freight + self.tax + self.TFSPU
     
     @classmethod
     def zero(cls):
@@ -150,7 +146,6 @@ class TransportCost:
         addition = object.__new__(TransportCost)
         addition.handling = round(self.handling + other.handling, COST_DECIMALS)
         addition.freight = round(self.freight + other.freight, COST_DECIMALS)
-        addition.subtotal = round(self.subtotal + other.subtotal, COST_DECIMALS)
         addition.tax = round(self.tax + other.tax, COST_DECIMALS)
         addition.TFSPU = round(self.TFSPU + other.TFSPU, COST_DECIMALS)
         addition.total = round(self.total + other.total, COST_DECIMALS)
@@ -159,7 +154,6 @@ class TransportCost:
     def __str__(self):
         output  = f'- Handling: USD {self.handling}\n'
         output += f'- Freight:  USD {self.freight}\n'
-        output += f'- Subtotal: USD {self.subtotal}\n'
         output +=  '  =========\n'
         output += f'- Tax:      USD {self.tax}\n'
         output += f'- TFSPU:    USD {self.TFSPU}\n'
