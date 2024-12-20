@@ -115,7 +115,7 @@ class PackageSolution:
             "total_tfspu": self.total_transport_cost.TFSPU,
             "total_transport": self.total_transport_cost.total,
             "total_import_fee": self.total_import_fee,
-            "total_cost": self.total_cost
+            "total_cost": round(self.total_cost, COST_DECIMALS)
         }
         if pretty:
             result = json.dumps(result, indent=4)
